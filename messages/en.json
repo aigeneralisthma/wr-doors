@@ -1,0 +1,65 @@
+{
+  "brand": {
+    "name": "WR Doors",
+    "platform": "DODA",
+    "legal": "Wahat Al Ruman Doors Trading LLC",
+    "endorsement": "WR Doors is a DODA platform brand"
+  },
+  "nav": {
+    "products": "Products",
+    "services": "Services",
+    "projects": "Projects",
+    "about": "About",
+    "contact": "Contact",
+    "getQuote": "Get Quote",
+    "menu": "Menu",
+    "close": "Close"
+  },
+  "language": {
+    "label": "Language",
+    "switchTo": "Switch to {language}",
+    "english": "English",
+    "arabic": "العربية"
+  },
+  "common": {
+    "loading": "Loading…",
+    "error": "Something went wrong",
+    "retry": "Try again",
+    "submit": "Submit",
+    "cancel": "Cancel",
+    "save": "Save",
+    "next": "Next",
+    "back": "Back",
+    "learnMore": "Learn more",
+    "viewAll": "View all",
+    "comingSoon": "Coming soon"
+  },
+  "home": {
+    "metaTitle": "WR Doors — Premium Doors & Home Services in UAE",
+    "metaDescription": "Custom WPC doors, pivot aluminium entries, sliding systems, and wall cladding. Crafted in UAE with a 10-year warranty. Powered by DODA.",
+    "heroTagline": "Premium Doors. Crafted in UAE.",
+    "heroSubtitle": "1,000+ designs. Triple guard against water, sound, and termites. Built in our local factory.",
+    "heroCtaPrimary": "Explore Products",
+    "heroCtaSecondary": "Get a Free Quote"
+  },
+  "footer": {
+    "tagline": "Premium doors and home services for the UAE.",
+    "quickLinks": "Quick Links",
+    "contact": "Contact",
+    "phone": "Phone",
+    "email": "Email",
+    "whatsapp": "WhatsApp",
+    "rights": "All rights reserved.",
+    "legalName": "Wahat Al Ruman Doors Trading LLC"
+  },
+  "forms": {
+    "required": "This field is required",
+    "invalidEmail": "Please enter a valid email",
+    "invalidPhone": "Please enter a valid UAE phone number",
+    "tooShort": "Too short (minimum {min} characters)",
+    "tooLong": "Too long (maximum {max} characters)",
+    "submitting": "Submitting…",
+    "success": "Thank you! We've received your message.",
+    "errorGeneric": "Something went wrong. Please try again or contact us directly."
+  }
+}

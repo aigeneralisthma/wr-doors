@@ -1,0 +1,275 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ============================================================================
+   WR DOORS × DODA — Design Tokens
+   ============================================================================
+   Brand colors are exposed as both raw HEX tokens (for one-off uses) and
+   shadcn-compatible semantic tokens (--primary, --secondary, etc.) so the
+   whole shadcn ecosystem just works.
+
+   Color philosophy:
+   - GOLD #F5B800 = WR Doors (product brand, warm, premium)
+   - NAVY #0A1F44 = DODA (platform, trust, sophisticated)
+   - INK  #000000 = Sophistication / typographic anchor
+   ============================================================================ */
+
+@theme inline {
+  /* Brand raw tokens (use sparingly — prefer semantic tokens below) */
+  --color-brand-gold: #f5b800;
+  --color-brand-gold-light: #ffd54f;
+  --color-brand-gold-dark: #c98e00;
+  --color-brand-navy: #0a1f44;
+  --color-brand-navy-light: #1a3567;
+  --color-brand-navy-dark: #050f24;
+  --color-brand-ink: #000000;
+  --color-brand-cream: #f8f5ee;
+
+  /* Semantic tokens (shadcn — drive every component) */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* Charts (used in admin dashboard later) */
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  /* Sidebar (admin dashboard) */
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Typography — bound to next/font variables set in app/[locale]/layout.tsx */
+  --font-serif: var(--font-source-serif), Georgia, "Times New Roman", serif;
+  --font-sans: var(--font-mona-sans), system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
+  --font-arabic: var(--font-plex-arabic), system-ui, sans-serif;
+
+  /* Radii (used by shadcn components) */
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  /* Custom animations */
+  --animate-shimmer: shimmer 2s linear infinite;
+  --animate-fade-up: fade-up 0.6s ease-out;
+
+  @keyframes shimmer {
+    from { background-position: 200% 0; }
+    to   { background-position: -200% 0; }
+  }
+  @keyframes fade-up {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+}
+
+/* ============================================================================
+   Light theme — WR Doors primary palette
+   ============================================================================
+   Primary = Gold (WR Doors product identity)
+   Secondary = Navy (DODA platform identity)
+   Background = Warm white that pairs with gold
+   ============================================================================ */
+:root {
+  --radius: 0.5rem;
+
+  /* Backgrounds & surfaces */
+  --background: #ffffff;
+  --foreground: #0a0a0a;
+  --card: #ffffff;
+  --card-foreground: #0a0a0a;
+  --popover: #ffffff;
+  --popover-foreground: #0a0a0a;
+
+  /* Brand-driven semantic colors */
+  --primary: #f5b800; /* WR Doors gold */
+  --primary-foreground: #0a1f44; /* navy text on gold for AAA contrast */
+  --secondary: #0a1f44; /* DODA navy */
+  --secondary-foreground: #ffffff;
+
+  --muted: #f4f4f5;
+  --muted-foreground: #52525b;
+  --accent: #f8f5ee; /* warm cream */
+  --accent-foreground: #0a1f44;
+
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: #e4e4e7;
+  --input: #e4e4e7;
+  --ring: #f5b800; /* gold focus rings — on-brand */
+
+  /* Charts — gold/navy harmonized for admin */
+  --chart-1: #f5b800;
+  --chart-2: #0a1f44;
+  --chart-3: #c98e00;
+  --chart-4: #1a3567;
+  --chart-5: #71717a;
+
+  /* Sidebar (admin) */
+  --sidebar: #0a1f44; /* navy admin shell */
+  --sidebar-foreground: #ffffff;
+  --sidebar-primary: #f5b800;
+  --sidebar-primary-foreground: #0a1f44;
+  --sidebar-accent: #1a3567;
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: #1a3567;
+  --sidebar-ring: #f5b800;
+}
+
+/* ============================================================================
+   Dark theme — inverted but on-brand
+   ============================================================================
+   Background = navy (DODA identity dominates dark)
+   Gold becomes more prominent on dark surfaces
+   ============================================================================ */
+.dark {
+  --background: #050f24;
+  --foreground: #f8f5ee;
+  --card: #0a1f44;
+  --card-foreground: #f8f5ee;
+  --popover: #0a1f44;
+  --popover-foreground: #f8f5ee;
+
+  --primary: #ffd54f; /* slightly brighter gold for dark */
+  --primary-foreground: #0a1f44;
+  --secondary: #1a3567;
+  --secondary-foreground: #ffffff;
+
+  --muted: #1a3567;
+  --muted-foreground: #a1a1aa;
+  --accent: #1a3567;
+  --accent-foreground: #f8f5ee;
+
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: rgba(255, 255, 255, 0.1);
+  --input: rgba(255, 255, 255, 0.15);
+  --ring: #ffd54f;
+
+  --chart-1: #ffd54f;
+  --chart-2: #f5b800;
+  --chart-3: #c98e00;
+  --chart-4: #71717a;
+  --chart-5: #f8f5ee;
+
+  --sidebar: #050f24;
+  --sidebar-foreground: #f8f5ee;
+  --sidebar-primary: #f5b800;
+  --sidebar-primary-foreground: #0a1f44;
+  --sidebar-accent: #1a3567;
+  --sidebar-accent-foreground: #f8f5ee;
+  --sidebar-border: rgba(255, 255, 255, 0.1);
+  --sidebar-ring: #ffd54f;
+}
+
+/* ============================================================================
+   Base layer
+   ============================================================================ */
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    /* Smooth scrolling for in-page anchors (CTAs, nav links) */
+    scroll-behavior: smooth;
+    /* Prevent layout shift when scrollbar appears */
+    scrollbar-gutter: stable;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: var(--font-sans);
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* RTL-specific tweaks: Arabic body type prefers a slightly larger size
+     because IBM Plex Sans Arabic renders smaller at the same px value */
+  html[dir="rtl"] body {
+    font-family: var(--font-arabic), var(--font-sans);
+    font-feature-settings: "kern", "liga";
+  }
+
+  /* Headings use the editorial serif (Source Serif 4) for premium feel.
+     Arabic version falls back to IBM Plex Sans Arabic because there is no
+     Arabic serif that pairs well with our display style. */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-serif);
+    letter-spacing: -0.02em;
+  }
+  html[dir="rtl"] h1,
+  html[dir="rtl"] h2,
+  html[dir="rtl"] h3,
+  html[dir="rtl"] h4,
+  html[dir="rtl"] h5,
+  html[dir="rtl"] h6 {
+    font-family: var(--font-arabic);
+    letter-spacing: 0;
+  }
+
+  /* Selection: brand gold highlight on navy text */
+  ::selection {
+    background-color: var(--color-brand-gold);
+    color: var(--color-brand-navy);
+  }
+}
+
+/* ============================================================================
+   Utilities — brand-specific composable classes
+   ============================================================================ */
+@layer utilities {
+  /* Geometric clip-paths used in section dividers + hexagonal cards
+     (inspired by the Wahat Al Ruman flyer's bold geometry) */
+  .clip-chevron-r {
+    clip-path: polygon(0 0, calc(100% - 24px) 0, 100% 50%, calc(100% - 24px) 100%, 0 100%);
+  }
+  .clip-chevron-l {
+    clip-path: polygon(24px 0, 100% 0, 100% 100%, 24px 100%, 0 50%);
+  }
+  .clip-hexagon {
+    clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+  }
+  .clip-angular-tl {
+    clip-path: polygon(48px 0, 100% 0, 100% 100%, 0 100%, 0 48px);
+  }
+
+  /* Gold animated underline used for accenting headings */
+  .gold-accent {
+    background: linear-gradient(
+      90deg,
+      transparent,
+      var(--color-brand-gold) 20%,
+      var(--color-brand-gold) 80%,
+      transparent
+    );
+    background-size: 200% 100%;
+    animation: var(--animate-shimmer);
+  }
+}
