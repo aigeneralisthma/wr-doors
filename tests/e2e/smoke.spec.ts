@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 
 /**
- * Smoke tests — verify the bilingual foundation works end-to-end.
+ * Smoke tests — verify the bilingual foundation + design system shell.
  *
  * Runs across mobile, tablet, and desktop (configured in playwright.config.ts).
  * Each test checks both /en and /ar so we catch RTL regressions early.
@@ -11,22 +11,15 @@ test.describe("Bilingual foundation", () => {
   test("/en renders English headline with LTR direction", async ({ page }) => {
     await page.goto("/en");
 
-    // Direction is set on <html dir="ltr">
     const dir = await page.locator("html").getAttribute("dir");
     expect(dir).toBe("ltr");
 
-    // Lang attribute is set correctly for screen readers + Google
     const lang = await page.locator("html").getAttribute("lang");
     expect(lang).toBe("en");
 
-    // English hero headline is visible
     await expect(
       page.getByRole("heading", { name: /Premium Doors\. Crafted in UAE\./i }),
     ).toBeVisible();
-
-    // Co-brand badge shows both DODA and WR Doors
-    await expect(page.getByText("DODA")).toBeVisible();
-    await expect(page.getByText("WR Doors")).toBeVisible();
   });
 
   test("/ar renders Arabic headline with RTL direction", async ({ page }) => {
@@ -38,21 +31,65 @@ test.describe("Bilingual foundation", () => {
     const lang = await page.locator("html").getAttribute("lang");
     expect(lang).toBe("ar");
 
-    // Arabic hero headline visible
     await expect(
       page.getByRole("heading", { name: /أبواب فاخرة/ }),
     ).toBeVisible();
-
-    // Arabic co-brand (دودا) visible
-    await expect(page.getByText("دودا")).toBeVisible();
   });
 
   test("redirects bare / to default locale", async ({ page }) => {
     const res = await page.goto("/");
-    // next-intl middleware redirects (3xx) or rewrites — either way we land on /en or /ar
     const url = page.url();
     expect(url).toMatch(/\/(en|ar)\b/);
     expect(res?.status()).toBeLessThan(500);
+  });
+});
+
+test.describe("Site chrome — Header + Footer + WhatsApp", () => {
+  test("Header renders the co-brand lockup and links to home", async ({ page }) => {
+    await page.goto("/en");
+
+    // The header is a banner landmark
+    const header = page.getByRole("banner");
+    await expect(header).toBeVisible();
+
+    // Co-brand lockup is announced as one img with aria-label "DODA × WR Doors"
+    await expect(header.getByRole("img", { name: /DODA.*WR Doors/i })).toBeVisible();
+  });
+
+  test("Footer surfaces the DODA endorsement, contact info, and legal entity", async ({ page }) => {
+    await page.goto("/en");
+    const footer = page.getByRole("contentinfo");
+    await expect(footer).toBeVisible();
+
+    // DODA endorsement copy (use .first() because the inner SVG <title>
+    // also contains "DODA" in some lockup configurations)
+    await expect(footer.getByText(/DODA platform brand/i).first()).toBeVisible();
+    // Phone number (UAE format)
+    await expect(footer.getByText(/\+971/)).toBeVisible();
+    // Legal entity (LLC) — use last() to skip the hidden SVG <title>
+    // (which appears first in DOM order) and target the visible legal strip
+    // paragraph at the bottom of the footer.
+    await expect(
+      footer.getByText(/Wahat Al Ruman Doors Trading LLC/i).last(),
+    ).toBeVisible();
+  });
+
+  test("WhatsApp floating button is present and links to wa.me", async ({ page }) => {
+    await page.goto("/en");
+    // Two WhatsApp anchors exist (the footer text-link and the floating button).
+    // Target the floating button by its specific aria-label so we test the
+    // sticky CTA that's always within reach.
+    const whatsapp = page.getByRole("link", { name: /WhatsApp.*WR Doors/i });
+    await expect(whatsapp).toBeVisible();
+    const href = await whatsapp.getAttribute("href");
+    expect(href).toContain("wa.me/971554039966");
+  });
+
+  test("Arabic footer shows the Arabic legal entity name", async ({ page }) => {
+    await page.goto("/ar");
+    const footer = page.getByRole("contentinfo");
+    await expect(footer).toBeVisible();
+    await expect(footer.getByText(/واحة الرمان/)).toBeVisible();
   });
 });
 

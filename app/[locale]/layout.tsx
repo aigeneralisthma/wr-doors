@@ -6,6 +6,9 @@ import { Source_Serif_4, IBM_Plex_Mono, IBM_Plex_Sans_Arabic } from "next/font/g
 
 import { routing, localeDirection, type Locale } from "@/i18n/routing";
 import { BRAND } from "@/lib/constants";
+import { Header } from "@/components/layout/header";
+import { Footer } from "@/components/layout/footer";
+import { WhatsAppButton } from "@/components/layout/whatsapp-button";
 import "../globals.css";
 
 /* ============================================================================
@@ -135,7 +138,12 @@ export default async function LocaleLayout({
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col bg-background text-foreground">
-        <NextIntlClientProvider>{children}</NextIntlClientProvider>
+        <NextIntlClientProvider>
+          <Header />
+          <div className="flex flex-1 flex-col">{children}</div>
+          <Footer />
+          <WhatsAppButton />
+        </NextIntlClientProvider>
       </body>
     </html>
   );

@@ -5,6 +5,138 @@
 
 ---
 
+## Prompt 2 — Design System & Layout Components ✅
+
+**Date**: 2026-06-07
+**Model used**: claude-opus-4-7 (as planned for creative components)
+**Status**: Complete
+
+### Goal
+Build the full set of reusable components that every subsequent prompt will compose: shadcn base UI, brand SVGs + co-brand lockup, branded custom components, site chrome (Header + Footer), animation wrappers, and the floating WhatsApp CTA.
+
+### Deliverables
+
+**shadcn base UI** (`components/ui/`)
+- `Button` (CVA + Radix Slot, with WR Doors variants: gold default, navy secondary, outline, ghost, link, destructive; sizes sm/default/lg/xl/icon)
+- `Card` (+ CardHeader, CardTitle, CardDescription, CardContent, CardFooter — serif-titled to match brand)
+- `Input`, `Textarea`, `Label` (Radix Label primitive)
+- `Sheet` (Radix Dialog — drives the mobile drawer)
+
+**Brand SVG marks** (`components/brand/`)
+- `WrDoorsLogo` — recreated from flyer: open-corner square frame, "WR" serif inside, "DOORS" tracked outside, optional "TRADING LLC." microtext. Uses `currentColor` to recolor cleanly across surfaces.
+- `DodaLogo` — designed from scratch: geometric sans wordmark "DODA" with a signature gold accent dot. Intentionally distinct from WR Doors (modern vs editorial) to support the co-brand contrast.
+- `DodaWrLockup` — three variants:
+  - `header`: side-by-side, DODA at ~70% visual weight of WR Doors
+  - `footer`: compact horizontal with muted color
+  - `splash`: large, vertically stacked for loading screens / 404
+- All three have proper `role="img"` + `aria-label` for screen readers
+
+**Branded custom components** (`components/brand/`)
+- `BrandButton` — wraps base Button with arrow icon (forward / back / none, auto-flips for RTL), supports `asChild` correctly via React.cloneElement (injects arrow into the cloned child)
+- `HexagonCard` — hexagonal clip-path with 2-tone inset for the navy frame; `tone="default|gold|navy|cream"`
+- `AngularDivider` — section separator with `chevron|angular|gradient-gold` variants
+- `GoldAccent` — animated shimmer bar used under headings; respects `prefers-reduced-motion`
+
+**Animation wrappers** (`components/animations/`)
+- `FadeIn` (immediate or scroll-triggered, configurable y-distance / duration)
+- `StaggerChildren` + `StaggerItem` (orchestrated stagger reveal)
+- `ScrollReveal` (scroll-linked parallax + opacity using framer-motion's useScroll/useTransform)
+- `SplineScene` (lazy-loaded React.lazy wrapper with branded skeleton fallback)
+- `ShaderBackground` (Three.js fragment shader from `Shader_Animation.txt`, color-tinted to brand palette, pauses on tab hide, respects prefers-reduced-motion)
+
+**Layout chrome** (`components/layout/`)
+- `Container` — width presets (default/wide/narrow/full), polymorphic `as` prop
+- `Header` (server component) — sticky, blurred background, DodaWrLockup brand link, desktop nav, LanguageToggle, gold "Get Quote" CTA, hamburger trigger for mobile
+- `Footer` (server component) — three-column layout (brand block, quick links, contact), DODA endorsement copy, contact info (phone tel:, email mailto:, WhatsApp wa.me, address), legal strip with © year + LLC name
+- `LanguageToggle` (client component) — compact (icon + locale code) and full (pill toggle) variants; uses next-intl's locale-aware router to swap without reload
+- `MobileNav` (client component) — Sheet-based slide-in drawer with brand lockup, nav links, full language toggle, gold CTA at the bottom
+- `WhatsAppButton` (client component) — fixed bottom-end floating button (WhatsApp green #25D366), accepts optional `prefill` text for contextual messages
+
+**Locale layout integration**
+- `app/[locale]/layout.tsx` now renders `<Header />`, page content, `<Footer />`, and `<WhatsAppButton />` as automatic site chrome on every locale-prefixed page.
+
+**Homepage exercise** (`app/[locale]/page.tsx`)
+- Updated to demonstrate the design system: Container + FadeIn + GoldAccent + BrandButton (gold + navy + asChild + Link) + HexagonCard grid (gold + navy + cream tones) + StaggerChildren animations.
+
+### Test Results
+- ✅ **TypeScript**: clean
+- ✅ **ESLint** (Next.js + security plugin): clean
+- ✅ **Vitest unit + component tests**: 31 passing (up from 15 in Prompt 1)
+  - Added: `button.test.tsx` (6 tests — variants, sizes, asChild)
+  - Added: `brand-button.test.tsx` (4 tests — arrow, variants, chevron clip)
+  - Added: `doda-wr-lockup.test.tsx` (6 tests — header/footer/splash variants, aria-label, custom label)
+- ✅ **Playwright E2E**: 24 tests across mobile + tablet + desktop, all passing (added Header, Footer, WhatsApp, Arabic footer assertions)
+- ✅ **Production build**: succeeds in 9.2s with Turbopack
+- ✅ Verified both `/en` (LTR) and `/ar` (RTL) render correctly with new chrome
+
+### Notes & Discoveries
+- **`React.Children.only` bug** found in v1 of BrandButton — when `asChild={true}`, Radix Slot only accepts a single child, but my original draft passed both `{children}` and `{ArrowIcon}` as siblings, breaking SSG. Fixed by using `React.cloneElement` to inject the arrow as a child *inside* the wrapped element. The new behavior keeps the consumer API ergonomic (`<BrandButton asChild><Link>Buy</Link></BrandButton>` renders as `<a>Buy<ArrowRight/></a>`).
+- **Lucide-react version** in `package.json` reads 1.17.0 but appears to be a deprecated namespace — the icons we use (ArrowRight, ArrowLeft, Menu, X, Globe, MessageCircle, Mail, Phone, MapPin) all render correctly. Will revisit in a follow-up cleanup if any icon goes missing.
+- **`middleware.ts` → `proxy.ts`**: Next.js 16 deprecation warning persists (not blocking). Will rename when we touch middleware logic next (Prompt 7+).
+- **Design system review**: BrandButton, HexagonCard, AngularDivider, GoldAccent all use CSS clip-paths defined in `app/globals.css` from Prompt 1. They render correctly in both LTR and RTL because clip-paths are direction-agnostic.
+
+### Security Review
+- ✅ No new secrets, no exposed keys
+- ✅ Client components use minimal hooks (`useTranslations`, `useLocale`, `usePathname`, `useRouter`)
+- ✅ External anchors (WhatsApp, mailto, tel) use `target="_blank" rel="noopener noreferrer"` where appropriate
+- ✅ XSS: all rendered text passes through next-intl translation pipeline (escapes HTML by default)
+- ✅ Sheet (mobile drawer) closes on backdrop click + Esc (Radix default)
+- ✅ Accessible names on the lockup, language toggle, mobile menu trigger, WhatsApp CTA
+
+### Files Added (high-level)
+```
+components/
+├── ui/
+│   ├── button.tsx + button.test.tsx
+│   ├── card.tsx
+│   ├── input.tsx
+│   ├── textarea.tsx
+│   ├── label.tsx
+│   └── sheet.tsx
+├── brand/
+│   ├── wr-doors-logo.tsx
+│   ├── doda-logo.tsx
+│   ├── doda-wr-lockup.tsx + doda-wr-lockup.test.tsx
+│   ├── brand-button.tsx + brand-button.test.tsx
+│   ├── hexagon-card.tsx
+│   ├── angular-divider.tsx
+│   └── gold-accent.tsx
+├── animations/
+│   ├── fade-in.tsx
+│   ├── stagger-children.tsx
+│   ├── scroll-reveal.tsx
+│   ├── spline-scene.tsx
+│   └── shader-background.tsx
+└── layout/
+    ├── container.tsx
+    ├── header.tsx
+    ├── footer.tsx
+    ├── language-toggle.tsx
+    ├── mobile-nav.tsx
+    └── whatsapp-button.tsx
+```
+Plus updates to: `app/[locale]/layout.tsx`, `app/[locale]/page.tsx`.
+
+### Commit
+- Hash: *(to be filled by git commit)*
+- Message: `feat(ui): design system + co-brand lockup + site chrome (header/footer/whatsapp)`
+- Remote: `https://github.com/aigeneralisthma/wr-doors.git`
+
+### Next Prompt
+**Prompt 3 — Homepage (Hero Spline 3D + USPs + Categories + Why Us)** (recommended model: 🟪 `claude-opus-4-7`)
+
+Will build the real conversion-focused homepage with:
+- Spline 3D hero scene with bilingual headline
+- USP strip (4 hexagonal cards with real icons)
+- Product category grid (using optimized images from Prompt 1)
+- Featured projects carousel
+- Big-stats "Why Us" section with animated counters
+- Services overview (3 cards: Sales, Consultation, Technician)
+- Testimonial placeholder
+- CTA section
+
+---
+
 ## Prompt 1 — Project Foundation & Branding Setup ✅
 
 **Date**: 2026-06-07
