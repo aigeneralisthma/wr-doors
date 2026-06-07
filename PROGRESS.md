@@ -87,8 +87,9 @@ components/
 Plus updates to: `app/[locale]/page.tsx`, `messages/en.json`, `messages/ar.json`, `tests/e2e/smoke.spec.ts`.
 
 ### Commit
-- Hash: *(to be filled by git commit)*
+- Hash: `be53677`
 - Message: `feat(home): full conversion-focused homepage with 8 bilingual sections`
+- Pushed: `c4e90d9..be53677 main -> main`
 - Remote: `https://github.com/aigeneralisthma/wr-doors.git`
 
 ### Next Prompt
