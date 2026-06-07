@@ -1,0 +1,84 @@
+/*
+ * Brand overrides for react-big-calendar.
+ * Targets `.rbc-*` selectors injected by the library.
+ * Tonal palette aligns with admin UI (subtle, business-y).
+ */
+
+.rbc-calendar {
+  font-family: inherit;
+  color: var(--foreground);
+}
+
+.rbc-toolbar {
+  margin-bottom: 12px;
+  font-size: 13px;
+}
+
+.rbc-toolbar button {
+  color: var(--foreground);
+  border: 1px solid var(--border);
+  background: var(--card);
+  padding: 4px 10px;
+  font-size: 12px;
+  border-radius: 6px;
+}
+
+.rbc-toolbar button:hover,
+.rbc-toolbar button:focus {
+  background: hsl(var(--muted));
+  border-color: var(--border);
+}
+
+.rbc-toolbar button.rbc-active {
+  background: var(--color-brand-navy);
+  color: #fff;
+  border-color: var(--color-brand-navy);
+}
+
+.rbc-toolbar-label {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.rbc-header {
+  font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted-foreground);
+  border-bottom: 1px solid var(--border);
+  padding: 8px 4px;
+}
+
+.rbc-month-view,
+.rbc-time-view,
+.rbc-agenda-view {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--card);
+}
+
+.rbc-day-bg + .rbc-day-bg,
+.rbc-header + .rbc-header,
+.rbc-month-row + .rbc-month-row {
+  border-color: var(--border);
+}
+
+.rbc-today {
+  background-color: rgba(245, 184, 0, 0.08); /* subtle gold */
+}
+
+.rbc-off-range-bg {
+  background: hsl(var(--muted) / 0.5);
+}
+
+.rbc-event {
+  padding: 2px 6px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.rbc-event:focus {
+  outline: 2px solid var(--color-brand-gold);
+  outline-offset: 1px;
+}

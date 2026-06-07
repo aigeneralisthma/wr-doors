@@ -5,6 +5,106 @@
 
 ---
 
+## Prompt 9a — Admin Dashboard (Auth + Read-only + Status Updates) ✅
+
+**Date**: 2026-06-08
+**Model used**: claude-opus-4-7
+**Status**: Complete (9b — products/projects/site-settings CRUD — will follow)
+
+### Goal
+Ship the lead-management workflow: an authenticated admin can sign in, see what's in the pipeline, update lead statuses, and assign technicians to bookings. CRUD on catalog content is deferred to 9b per user decision.
+
+### Deliverables
+
+**Auth + middleware**
+- `middleware.ts` refactored to compose two responsibilities:
+  - **Locale routing** (next-intl) for `/[locale]/*`
+  - **Auth gating** for `/admin/*` — uses cookie-based `@supabase/ssr` server client to call `auth.getUser()`; redirects unauthed users to `/admin/login?next=<path>` and bounces already-authed users away from `/admin/login` to `/admin/dashboard`
+- Matcher now includes `/admin/*` (previously excluded)
+
+**Admin layouts** (route group pattern for clean separation)
+- `app/admin/layout.tsx` — root admin layout, provides `<html>`/`<body>` shell, English-only, `robots: noindex,nofollow`
+- `app/admin/(authed)/layout.tsx` — sub-layout for dashboard/leads/bookings; runs auth check (defense in depth) + renders fixed sidebar with admin email + sign-out
+- `app/admin/login/page.tsx` — separate page outside the `(authed)` group so it doesn't get sidebar or trigger redirect loops
+
+**Pages**
+- `/admin/login` — branded card with email + password form (Client Component using `createBrowserClient`); honors `?next=` param for post-login redirect (sanitized to prevent open-redirect); maps Supabase "Invalid login credentials" to user-friendly message
+- `/admin/dashboard` — overview with 4 stat cards (new leads, upcoming bookings, conversion rate, locale split), two breakdown cards (leads by status+source, bookings by status), and recent-activity feed (last 8 leads + bookings merged + time-ordered)
+- `/admin/leads` — Server fetches latest 50, Client table with filter pills (All / New / Contacted / Converted / Lost with counts), search by name/phone/email, locale flag emoji, status badge. Click row → side drawer with all fields + tap-to-call/WhatsApp + customer message (RTL if AR) + status dropdown + admin_notes textarea → Save via server action
+- `/admin/bookings` — toggle between **react-big-calendar** month view (events color-coded by status: gold/navy/blue/green/gray) and table view; click event/row → drawer with status + technician picker + admin_notes
+
+**Server actions** (`app/admin/actions.ts`)
+- `signOut()` — auth.signOut() + redirect to login
+- `updateLeadStatus({ leadId, status, adminNotes })` — Zod-validated, re-checks `auth.getUser()` as defense in depth, calls `revalidatePath` on `/admin/leads` + `/admin/dashboard` so the UI reflects immediately
+- `updateBooking({ bookingId, status, assignedTechnician, adminNotes })` — same pattern; status + technician assignment in one save
+
+**Admin queries** (`lib/supabase/admin-queries.ts`)
+- `"server-only"` import — build fails if anyone imports from a Client Component
+- `getLeadsAdmin({ status?, source?, search? })` with `.or()` ilike search across name/phone/email + pagination
+- `getBookingsAdmin({ status?, technicianId? })`
+- `getTechniciansAdmin()` — active only
+- `getDashboardStats()` — single function returning all dashboard data; runs 4 parallel queries
+
+**Reusable admin components**
+- `components/admin/sidebar-nav.tsx` — fixed left sidebar with active-route highlight + admin email + sign-out button
+- `components/admin/stat-card.tsx` — generic dashboard tile (label + value + optional subtext + optional icon)
+
+**Drawers (Client Components)**
+- Both lead + booking drawers use the wrapper-with-keyed-body pattern to avoid the `setState`-in-`useEffect` anti-pattern: outer component holds open/close, inner body is keyed by row id so React unmounts/remounts it on selection change, cleanly initializing form state from props
+- Both drawers wrap the existing `<Sheet side="right">` primitive
+- Inline success/error feedback with `useTransition` for non-blocking saves
+
+**Seed**
+- `supabase/seed/0002_seed_technicians.sql` — 3 sample technicians with hard-coded UUIDs (so seeds are reproducible across envs); user paste → run
+
+**User-facing walkthrough**
+- `ADMIN_GUIDE.md` covers: pre-login setup, what each page does, sign-out, troubleshooting, and what's deferred to 9b
+
+**Email config update (carried over from Prompt 8)**
+- `RESEND_SETUP.md` updated: all references to `hafizazeem@gmail.com` → `aigeneralist.hma@gmail.com` per user signup
+
+### Test Results
+- ✅ **TypeScript**: clean
+- ✅ **ESLint**: clean (0 errors, 0 warnings)
+- ✅ **Vitest unit tests**: 40/40 passing (no regressions)
+- ✅ **Production build**: 4 new admin routes (`/admin/login` static, `/admin/dashboard|leads|bookings` dynamic) + 11 existing public routes still SSG with 60s ISR
+- ✅ **Playwright E2E** — mobile: 67/67 passing (6 new admin smoke + 61 existing public regression)
+
+### Bug fixes during this prompt
+1. **`Sheet` doesn't export `SheetTitle`/`SheetDescription`** — inlined plain `<h2>` + `<p>` elements in both drawers
+2. **Missing `<html>`/`<body>` in root admin layout** — Next.js requires every route tree to have a root layout providing these. Initially only `app/[locale]/layout.tsx` had them (for public routes). Fix: added `app/admin/layout.tsx` as the root admin layout shell.
+3. **`react-hooks/set-state-in-effect` lint error** — my initial drawer pattern called `setState` inside `useEffect` to sync form state from a prop on selection change. Refactored to "outer wrapper + keyed inner body": React unmounts/remounts the inner component when row id changes, cleanly re-initializing state from props with no effects.
+4. **`let response` flagged as `prefer-const`** in middleware — never reassigned; changed to `const`.
+
+### Known issues / deferred to 9b
+- ❌ `/admin/products` CRUD with Storage upload
+- ❌ `/admin/projects` CRUD
+- ❌ `/admin/site-settings` mini CMS
+- ❌ Storage RLS for uploads (currently buckets are public-read, uploads unprotected)
+- ❌ `0002_add_product_specs.sql` migration (move specs from `lib/product-specs.ts` to DB JSONB column)
+- ❌ Real RBAC (admin/sales_agent/technician) — Phase 2
+- ❌ Lead export (CSV) — Phase 2
+- ❌ Admin password reset UI — use Supabase Dashboard for now
+- ⏳ User needs to paste `supabase/seed/0002_seed_technicians.sql` so booking drawer's technician picker has options (otherwise it shows "Unassigned" only)
+
+### Security review
+- ✅ All `/admin/*` routes blocked by middleware unless `auth.getUser()` returns a user
+- ✅ `app/admin/(authed)/layout.tsx` also calls `auth.getUser()` + redirects — defense in depth
+- ✅ All server actions re-check `auth.getUser()` before any write
+- ✅ `lib/supabase/admin-queries.ts` imports `"server-only"` — build fails if ever imported in Client
+- ✅ No service-role key anywhere
+- ✅ `next` query param in login redirect sanitized (must start with `/admin/`, no `//`, no `:`) to prevent open-redirect
+- ✅ Status enum values validated server-side via Zod — admin can't set unsupported status values
+- ✅ Generic error messages to user — no DB internals leaked
+- ✅ `metadata.robots = { index: false, follow: false }` on admin root layout + login page
+- ✅ Cookie-based auth via `@supabase/ssr` — sessions refresh automatically
+
+### Commit
+- Branch: `main`
+- Message: `feat(admin): auth, dashboard, leads + bookings management (9a)`
+
+---
+
 ## Prompt 8 — Form Integration + Resend Emails + Supabase Reads ✅
 
 **Date**: 2026-06-07

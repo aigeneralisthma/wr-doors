@@ -17,10 +17,10 @@
 ## Step 1 — Create Resend account (~2 min)
 
 1. Go to **[resend.com](https://resend.com)** → click **"Get Started for Free"**
-2. **CRITICAL**: Sign up using **`hafizazeem@gmail.com`** (your admin email).
+2. **CRITICAL**: Sign up using **`aigeneralist.hma@gmail.com`** (your admin email).
    - Resend's free/sandbox tier only delivers email to **the account-owner's email address**.
    - If you sign up with a different email, the admin alerts will not deliver.
-   - GitHub login is also fine — but it must use the same `hafizazeem@gmail.com` address.
+   - GitHub login is also fine — but it must use the same `aigeneralist.hma@gmail.com` address.
 3. Verify your email if asked
 
 > 💡 **What about customer emails?** With sandbox, customer confirmation emails will *not* deliver (their addresses aren't verified). The lead is still saved in Supabase and the customer sees the on-screen success state. When the client confirms their `wrdoors.com` domain (Prompt 10 or pre-launch), we add DNS records to deliver customer email globally — no code changes needed.
@@ -47,7 +47,7 @@ Open `C:\doda-website\wr-doors\.env.local` and ensure these three lines are pres
 # ----- Resend (transactional email) -----
 RESEND_API_KEY="re_paste_your_key_here"
 RESEND_FROM_EMAIL="WR Doors <onboarding@resend.dev>"
-ADMIN_NOTIFICATION_EMAIL="hafizazeem@gmail.com"
+ADMIN_NOTIFICATION_EMAIL="aigeneralist.hma@gmail.com"
 ```
 
 > 💡 The `RESEND_FROM_EMAIL` format is `Display Name <email@address>`. Most email clients render the display name in the inbox.
@@ -67,7 +67,7 @@ Open `http://localhost:3000/en/contact` → fill the form → submit. Expect:
 
 - ✅ On-screen: success state appears ("Message received!")
 - ✅ Supabase Dashboard → Table Editor → `leads` → 1 new row with `source='contact'`, `locale='en'`
-- ✅ `hafizazeem@gmail.com` inbox → admin alert email arrived (subject `[Lead] contact from <name>`)
+- ✅ `aigeneralist.hma@gmail.com` inbox → admin alert email arrived (subject `[Lead] contact from <name>`)
 - ❌ `<the email you typed in the form>` inbox → **nothing** (sandbox limitation — expected)
 
 ---
