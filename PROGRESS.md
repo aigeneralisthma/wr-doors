@@ -5,6 +5,113 @@
 
 ---
 
+## Prompt 4 — Product Catalog & Detail Pages ✅
+
+**Date**: 2026-06-07
+**Model used**: claude-sonnet-4-6
+**Status**: Complete
+
+### Goal
+Build the full product browsing experience — a main catalog page, per-category listing pages, and a detail page with specs, Triple Guard section, quote modal, and related products. All bilingual, all statically prerendered.
+
+### Deliverables
+
+**Translation keys** (~60 new keys in both `messages/en.json` + `messages/ar.json`)
+- `products.metaTitle/Description`, `heroEyebrow/Title/Subtitle`, `allProducts`, `viewDetails`, `requestQuote`, `priceFrom`, `priceOnRequest`, `relatedTitle`, `specsTitle`
+- `products.tripleGuard.*` — bilingual Triple Guard feature panel (eyebrow, title, subtitle, water/sound/termite)
+- `products.quoteModal.*` — quote inquiry modal copy (title, subtitle, labels, placeholders, success states)
+- `products.categories.*Title/Subtitle/Desc` — extended category metadata (was subtitle-only, now includes full title + description)
+
+**Product catalog extended** (`lib/products.ts`)
+- Added `ProductSpec` interface: `{label_en, label_ar, value_en, value_ar}`
+- Added `PRODUCT_CATEGORY_SLUGS` array for `generateStaticParams`
+- Added `CATEGORY_META` record mapping slug → title/subtitle/desc i18n keys
+- Added `specs: ProductSpec[]` to every product (7 specs each, fully bilingual)
+
+**New UI components** (`components/ui/`)
+- `dialog.tsx` — centered modal on `@radix-ui/react-dialog`, animated (zoom-in/fade-in)
+- `badge.tsx` — inline pill label (CVA variants: default/secondary/outline/muted)
+
+**New product components** (`components/products/`)
+- `product-card.tsx` — reusable grid card: image, category badge, serif name, truncated description, price hint, "View Details" link with animated arrow (RTL-flips)
+- `category-pills.tsx` — link-based filter pills (All + 4 categories), active state highlighted navy, SSR with no JS required
+- `triple-guard-panel.tsx` — navy full-width section: Droplets/Volume2/Bug icons, three columns, frosted-glass cards
+- `quote-modal.tsx` (client) — Dialog with product pre-filled (read-only), name/phone/message fields, submit (stub → console, Prompt 8 wires Supabase), success state with WhatsApp CTA
+- `related-products.tsx` — cream-background section showing up to 3 product cards
+
+**Pages** (all Server Components, bilingual, statically prerendered)
+- `app/[locale]/products/page.tsx` — catalog with eyebrow/heading/subtitle, category pills ("All" active), 8-product grid (4-col xl, 3-col lg, 2-col sm)
+- `app/[locale]/products/[category]/page.tsx` — breadcrumb, category heading + desc, category pills (slug active), filtered product grid
+- `app/[locale]/products/[category]/[slug]/page.tsx` — breadcrumb, sticky two-column layout (55/45), large product image, badge, serif heading, price, description, specs `<dl>`, CTAs (QuoteModal + WhatsApp), 10-year warranty note, TripleGuardPanel, RelatedProducts (3 cards)
+
+**Static prerendering** — all 26 product routes prerendered at build time:
+- 2 locales × 1 catalog page = 2 routes
+- 2 locales × 4 category pages = 8 routes
+- 2 locales × 8 product detail pages = 16 routes
+
+### Test Results
+- ✅ **TypeScript**: clean (exit 0)
+- ✅ **ESLint** (Next.js + security): clean (0 errors, 0 warnings)
+- ✅ **Vitest unit tests**: 40/40 passing (no regressions)
+- ✅ **Playwright E2E**: **78/78 test cases** passing across mobile + tablet + desktop
+  - 45 new product tests (catalog, category, detail, triple guard, related, quote modal)
+  - 33 smoke tests (homepage + site chrome) — no regressions
+  - Run with `--workers=1` for stable dev server; multi-worker still shows "Could not connect" flake (same pattern as Prompt 3 — not a test failure)
+- ✅ **Production build**: 26 new statically prerendered routes (2 catalog + 8 category + 16 detail)
+
+### Notes & Fixes
+- **AR Triple Guard strict-mode violation** — `/مقاوم للماء/i` matched both the Triple Guard heading AND the "Waterproof Bathroom WPC" product name in related products. Fixed with `{ exact: true }` on the assertion.
+- **Smooth scroll + modal click flake** — globals.css sets `scroll-behavior: smooth` on `<html>`. Playwright's auto-scroll before clicking triggers the smooth animation, and the click can land before the button finishes scrolling, causing the Dialog to not open. Fixed by injecting `* { scroll-behavior: auto !important; }` via `page.addStyleTag()` in the two modal tests.
+- **`dialog.getByDisplayValue` non-existent** — Playwright's `Locator` doesn't have `getByDisplayValue()` (only `Page` does). Fixed by using `dialog.locator('input[readonly]').toHaveValue(...)` instead.
+- **`CATEGORY_META` unused variable** — removed the variable after realizing the keys were computed inline via a ternary chain.
+
+### Security Review
+- ✅ No secrets, no new env vars
+- ✅ QuoteModal form: `required`, `minLength` attributes on all fields (client-side pre-validation)
+- ✅ WhatsApp links use `rel="noopener noreferrer"` + encoded message text via `whatsappUrl()`
+- ✅ All product/category slugs validated via `PRODUCT_CATEGORY_SLUGS.includes()` before page render; `notFound()` returned on unknown slugs — no param injection possible
+- ✅ Quote submission is a stub (no server action yet) — no data persisted in Prompt 4; Prompt 8 will add server-side Zod validation + Supabase RLS
+
+### Files Added
+```
+components/
+├── ui/
+│   ├── dialog.tsx                    # centered modal
+│   └── badge.tsx                     # inline pill label
+└── products/
+    ├── product-card.tsx              # grid card
+    ├── category-pills.tsx            # link-based filter
+    ├── triple-guard-panel.tsx        # navy feature section
+    ├── quote-modal.tsx               # client modal + form stub
+    └── related-products.tsx          # 3-card strip
+
+app/[locale]/products/
+├── page.tsx                          # /products
+├── [category]/
+│   ├── page.tsx                      # /products/[category]
+│   └── [slug]/
+│       └── page.tsx                  # /products/[category]/[slug]
+
+tests/e2e/
+└── products.spec.ts                  # 45 E2E test cases
+```
+Plus updates to: `lib/products.ts`, `messages/en.json`, `messages/ar.json`.
+
+### Commit
+- Hash: TBD (committed below)
+- Message: `feat(products): bilingual catalog, category, and detail pages with quote modal`
+- Remote: `https://github.com/aigeneralisthma/wr-doors.git`
+
+### Next Prompt
+**Prompt 5 — Service & Booking Pages** (recommended model: 🟦 `claude-sonnet-4-6`)
+Will build:
+- `/services` — overview of all service types (Consultation, Installation, Plumbing, Carpentry)
+- `/book` — multi-step consultation booking form (service type → date/time → contact → confirmation)
+- `/quote` — standalone quote request form (product interest, dimensions, contact, message)
+- `react-hook-form` + Zod validation with bilingual error messages
+
+---
+
 ## Prompt 3 — Homepage (Hero + USPs + Categories + Projects + Why Us + Services + Testimonials + Final CTA) ✅
 
 **Date**: 2026-06-07

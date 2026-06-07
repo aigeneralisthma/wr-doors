@@ -17,21 +17,73 @@ export type ProductCategorySlug =
   | "sliding-systems"
   | "wall-cladding";
 
+/** Single bilingual spec row shown in the product detail table. */
+export interface ProductSpec {
+  label_en: string;
+  label_ar: string;
+  value_en: string;
+  value_ar: string;
+}
+
 export interface Product {
   slug: string;
   category: ProductCategorySlug;
-  /** Translation keys live in messages/{en,ar}.json under `products.items` (added in Prompt 4). */
   name_en: string;
   name_ar: string;
   description_en: string;
   description_ar: string;
   /** Resolved at module load time so callers don't have to handle undefined. */
   image: OptimizedImage;
+  /** Bilingual spec table shown on the detail page. */
+  specs?: ProductSpec[];
   /** Used to sort/feature products on the homepage. */
   featured?: boolean;
   /** AED minimum, displayed as "from AED X" — null when "by quote only". */
   priceFromAed?: number;
 }
+
+/** Category-level metadata used by catalog and category pages. */
+export interface CategoryMeta {
+  slug: ProductCategorySlug;
+  titleKey: string;   // → products.categories.{key}Title
+  subtitleKey: string;
+  descKey: string;
+}
+
+/** Ordered list of all category slugs — used for generateStaticParams and category filter. */
+export const PRODUCT_CATEGORY_SLUGS: ProductCategorySlug[] = [
+  "wpc-doors",
+  "pivot-aluminium-doors",
+  "sliding-systems",
+  "wall-cladding",
+];
+
+export const CATEGORY_META: Record<ProductCategorySlug, CategoryMeta> = {
+  "wpc-doors": {
+    slug: "wpc-doors",
+    titleKey: "products.categories.wpcDoorsTitle",
+    subtitleKey: "products.categories.wpcDoorsSubtitle",
+    descKey: "products.categories.wpcDoorsDesc",
+  },
+  "pivot-aluminium-doors": {
+    slug: "pivot-aluminium-doors",
+    titleKey: "products.categories.pivotDoorsTitle",
+    subtitleKey: "products.categories.pivotDoorsSubtitle",
+    descKey: "products.categories.pivotDoorsDesc",
+  },
+  "sliding-systems": {
+    slug: "sliding-systems",
+    titleKey: "products.categories.slidingSystemsTitle",
+    subtitleKey: "products.categories.slidingSystemsSubtitle",
+    descKey: "products.categories.slidingSystemsDesc",
+  },
+  "wall-cladding": {
+    slug: "wall-cladding",
+    titleKey: "products.categories.wallCladdingTitle",
+    subtitleKey: "products.categories.wallCladdingSubtitle",
+    descKey: "products.categories.wallCladdingDesc",
+  },
+};
 
 /** Build a product row from manifest, throwing if the image went missing. */
 function product(
@@ -60,6 +112,15 @@ export const PRODUCTS: Product[] = [
     description_ar:
       "باب داخلي رفيع وحديث بقشرة بلوط فاتح. خشب بلاستيك مركب مهندس يقاوم الرطوبة والصوت والاهتراء — مثالي للفلل والشقق على حد سواء.",
     featured: true,
+    specs: [
+      { label_en: "Material", label_ar: "المادة", value_en: "WPC Composite", value_ar: "مركب WPC" },
+      { label_en: "Door Type", label_ar: "نوع الباب", value_en: "Interior", value_ar: "داخلي" },
+      { label_en: "Standard Size", label_ar: "المقاس القياسي", value_en: "900 × 2100 mm", value_ar: "900 × 2100 ملم" },
+      { label_en: "Thickness", label_ar: "السماكة", value_en: "35 mm", value_ar: "35 ملم" },
+      { label_en: "Core", label_ar: "النواة", value_en: "Hollow acoustic core", value_ar: "نواة مجوفة عازلة للصوت" },
+      { label_en: "Finish Options", label_ar: "خيارات التشطيب", value_en: "20+ colours / veneer", value_ar: "أكثر من 20 لون وقشرة" },
+      { label_en: "Delivery", label_ar: "موعد التسليم", value_en: "7–14 working days", value_ar: "7–14 يوم عمل" },
+    ],
   }),
   product("waterproof-bathroom-wpc", "wpc-doors", "waterproofbathroom-wpc-door", {
     name_en: "Waterproof Bathroom WPC Door",
@@ -68,6 +129,15 @@ export const PRODUCTS: Product[] = [
       "Designed for wet zones: full waterproof core, sealed edges, and a finish that resists warping over a decade of daily use.",
     description_ar:
       "مصمم للمناطق الرطبة: نواة مقاومة للماء بالكامل، حواف محكمة الإغلاق، وتشطيب يقاوم الالتواء لعشر سنوات من الاستخدام اليومي.",
+    specs: [
+      { label_en: "Material", label_ar: "المادة", value_en: "Waterproof-grade WPC", value_ar: "WPC مقاوم للماء" },
+      { label_en: "Door Type", label_ar: "نوع الباب", value_en: "Bathroom / wet zone", value_ar: "حمام / منطقة رطبة" },
+      { label_en: "Standard Size", label_ar: "المقاس القياسي", value_en: "700–900 × 2100 mm", value_ar: "700–900 × 2100 ملم" },
+      { label_en: "Thickness", label_ar: "السماكة", value_en: "35 mm", value_ar: "35 ملم" },
+      { label_en: "Core", label_ar: "النواة", value_en: "Solid sealed core", value_ar: "نواة صلبة محكمة" },
+      { label_en: "Waterproof Rating", label_ar: "تقييم المقاومة للماء", value_en: "IP54 equivalent", value_ar: "مكافئ IP54" },
+      { label_en: "Delivery", label_ar: "موعد التسليم", value_en: "7–14 working days", value_ar: "7–14 يوم عمل" },
+    ],
   }),
   product("custom-engineered-wpc", "wpc-doors", "custom-engineered-wpc-door", {
     name_en: "Custom Engineered WPC Door",
@@ -76,6 +146,15 @@ export const PRODUCTS: Product[] = [
       "Built to your dimensions and panel design. Choose finish, hardware, and glazing — manufactured in our UAE factory in days, not weeks.",
     description_ar:
       "مصنوع وفق أبعادك وتصميمك للألواح. اختر التشطيب والإكسسوارات والزجاج — يُصنع في مصنعنا في الإمارات خلال أيام، لا أسابيع.",
+    specs: [
+      { label_en: "Material", label_ar: "المادة", value_en: "Custom-grade WPC", value_ar: "WPC مخصص الدرجة" },
+      { label_en: "Door Type", label_ar: "نوع الباب", value_en: "Interior (custom)", value_ar: "داخلي (مخصص)" },
+      { label_en: "Dimensions", label_ar: "الأبعاد", value_en: "Fully custom", value_ar: "مخصص بالكامل" },
+      { label_en: "Thickness", label_ar: "السماكة", value_en: "35–45 mm", value_ar: "35–45 ملم" },
+      { label_en: "Core", label_ar: "النواة", value_en: "Hollow or solid", value_ar: "مجوفة أو صلبة" },
+      { label_en: "Finish Options", label_ar: "خيارات التشطيب", value_en: "Custom RAL colours", value_ar: "ألوان RAL مخصصة" },
+      { label_en: "Delivery", label_ar: "موعد التسليم", value_en: "14–21 working days", value_ar: "14–21 يوم عمل" },
+    ],
   }),
 
   // ── Pivot Aluminium Doors ────────────────────────────────────────────────
@@ -91,6 +170,15 @@ export const PRODUCTS: Product[] = [
       description_ar:
         "مدخل يلفت الأنظار: باب محوري ألمنيوم بحجم كبير مع مقبض سحب نحتي واحد. مصمم لحجم الفلل والظروف الرطبة في الإمارات.",
       featured: true,
+      specs: [
+        { label_en: "Frame Material", label_ar: "مادة الإطار", value_en: "6000-series extruded aluminium", value_ar: "ألمنيوم مُبثوق سلسلة 6000" },
+        { label_en: "Door Type", label_ar: "نوع الباب", value_en: "Exterior pivot", value_ar: "محوري خارجي" },
+        { label_en: "Standard Size", label_ar: "المقاس القياسي", value_en: "1000–1200 × 2400 mm", value_ar: "1000–1200 × 2400 ملم" },
+        { label_en: "Max Height", label_ar: "الارتفاع الأقصى", value_en: "3000 mm (custom)", value_ar: "3000 ملم (مخصص)" },
+        { label_en: "Frame Profile", label_ar: "قسم الإطار", value_en: "100 mm double-wall extrusion", value_ar: "بثق مزدوج الجدار 100 ملم" },
+        { label_en: "Finish", label_ar: "التشطيب", value_en: "Powder coat — custom RAL", value_ar: "طلاء بودرة — RAL مخصص" },
+        { label_en: "Delivery", label_ar: "موعد التسليم", value_en: "21–28 working days", value_ar: "21–28 يوم عمل" },
+      ],
     },
   ),
   product(
@@ -104,6 +192,15 @@ export const PRODUCTS: Product[] = [
         "A restrained pivot design — flush profiles, hidden hinges, and a powder-coat palette tuned to UAE light and dust.",
       description_ar:
         "تصميم محوري متحفظ — ملامح مسطحة، مفصلات مخفية، ولوحة طلاء بودرة مضبوطة للضوء والغبار الإماراتي.",
+      specs: [
+        { label_en: "Frame Material", label_ar: "مادة الإطار", value_en: "6000-series aluminium", value_ar: "ألمنيوم سلسلة 6000" },
+        { label_en: "Door Type", label_ar: "نوع الباب", value_en: "Exterior entry", value_ar: "مدخل خارجي" },
+        { label_en: "Standard Size", label_ar: "المقاس القياسي", value_en: "900–1100 × 2200 mm", value_ar: "900–1100 × 2200 ملم" },
+        { label_en: "Frame Profile", label_ar: "قسم الإطار", value_en: "80 mm slim profile", value_ar: "قسم رفيع 80 ملم" },
+        { label_en: "Hardware", label_ar: "الإكسسوارات", value_en: "Mortise lock + lever handle", value_ar: "قفل ممتاز + مقبض ذراع" },
+        { label_en: "Finish", label_ar: "التشطيب", value_en: "Powder coat (standard range)", value_ar: "طلاء بودرة (نطاق قياسي)" },
+        { label_en: "Delivery", label_ar: "موعد التسليم", value_en: "14–21 working days", value_ar: "14–21 يوم عمل" },
+      ],
     },
   ),
 
@@ -120,6 +217,15 @@ export const PRODUCTS: Product[] = [
       description_ar:
         "ألواح زجاجية من الأرض إلى السقف في إطار ألمنيوم رفيع. يحدد المساحات دون عزلها — مثالي للشقق المفتوحة.",
       featured: true,
+      specs: [
+        { label_en: "Frame Material", label_ar: "مادة الإطار", value_en: "Extruded aluminium", value_ar: "ألمنيوم مُبثوق" },
+        { label_en: "Glass", label_ar: "الزجاج", value_en: "8–12 mm tempered / insulated", value_ar: "زجاج مقسّى / عازل 8–12 ملم" },
+        { label_en: "Track", label_ar: "المسار", value_en: "Floor-flush soft-close", value_ar: "مدمج مع الأرضية مع إغلاق ناعم" },
+        { label_en: "Noise Reduction", label_ar: "خفض الضوضاء", value_en: "30–35 dB", value_ar: "30–35 ديسيبل" },
+        { label_en: "Max Width", label_ar: "العرض الأقصى", value_en: "4000 mm (2 panels)", value_ar: "4000 ملم (لوحتان)" },
+        { label_en: "Finish", label_ar: "التشطيب", value_en: "Anodised / powder coat", value_ar: "مؤكسَد / طلاء بودرة" },
+        { label_en: "Delivery", label_ar: "موعد التسليم", value_en: "10–14 working days", value_ar: "10–14 يوم عمل" },
+      ],
     },
   ),
   product(
@@ -133,6 +239,15 @@ export const PRODUCTS: Product[] = [
         "A door that disappears when not in use. Pocket-style with soft-close and a low-profile track flush with the floor.",
       description_ar:
         "باب يختفي عند عدم الاستخدام. نمط جيب مع إغلاق ناعم ومسار منخفض الارتفاع مدمج مع الأرضية.",
+      specs: [
+        { label_en: "Frame Material", label_ar: "مادة الإطار", value_en: "Aluminium + WPC/glass panel", value_ar: "ألمنيوم + لوح WPC/زجاج" },
+        { label_en: "Door Type", label_ar: "نوع الباب", value_en: "Interior pocket (recessed)", value_ar: "جيب داخلي مدمج" },
+        { label_en: "Track", label_ar: "المسار", value_en: "Concealed top-hung", value_ar: "علوي مخفي" },
+        { label_en: "Soft-Close", label_ar: "الإغلاق الناعم", value_en: "Standard", value_ar: "قياسي" },
+        { label_en: "Floor Flush", label_ar: "مدمج مع الأرضية", value_en: "Yes — no threshold", value_ar: "نعم — بدون عتبة" },
+        { label_en: "Wall Cavity", label_ar: "تجويف الجدار", value_en: "Min. 120 mm required", value_ar: "120 ملم كحد أدنى" },
+        { label_en: "Delivery", label_ar: "موعد التسليم", value_en: "14–21 working days", value_ar: "14–21 يوم عمل" },
+      ],
     },
   ),
 
@@ -149,6 +264,15 @@ export const PRODUCTS: Product[] = [
       description_ar:
         "ألواح محززة عمودية بخشب الجوز أو البلوط. تضيف إيقاعًا ودفئًا للجدران المميزة دون إثقال الغرفة.",
       featured: true,
+      specs: [
+        { label_en: "Material", label_ar: "المادة", value_en: "WPC / MDF composite", value_ar: "WPC / مركب MDF" },
+        { label_en: "Type", label_ar: "النوع", value_en: "Feature wall panel", value_ar: "لوح جدار مميز" },
+        { label_en: "Panel Width", label_ar: "عرض اللوح", value_en: "120–200 mm", value_ar: "120–200 ملم" },
+        { label_en: "Panel Height", label_ar: "ارتفاع اللوح", value_en: "Custom (floor to ceiling)", value_ar: "مخصص (من الأرض للسقف)" },
+        { label_en: "Finish Options", label_ar: "خيارات التشطيب", value_en: "Walnut, Oak, Custom paint", value_ar: "جوز، بلوط، طلاء مخصص" },
+        { label_en: "Installation", label_ar: "التركيب", value_en: "Clip-on or direct-fix", value_ar: "تثبيت بمشبك أو مباشر" },
+        { label_en: "Delivery", label_ar: "موعد التسليم", value_en: "7–14 working days", value_ar: "7–14 يوم عمل" },
+      ],
     },
   ),
 ];

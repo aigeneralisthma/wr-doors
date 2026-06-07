@@ -111,15 +111,71 @@
     "finalCtaSecondary": "Book a Consultation"
   },
   "products": {
+    "metaTitle": "Products — WR Doors",
+    "metaDescription": "Explore our full range of premium WPC doors, pivot aluminium entries, sliding systems and wall cladding — manufactured in the UAE with a 10-year warranty.",
+    "heroEyebrow": "Our Catalog",
+    "heroTitle": "Doors for every home, every vision",
+    "heroSubtitle": "8 signature designs across 4 categories — all manufactured in our UAE factory and available in custom dimensions.",
+    "allProducts": "All Products",
+    "productsIn": "Products in",
+    "viewDetails": "View Details",
+    "requestQuote": "Request Quote",
+    "priceFrom": "From AED {price}",
+    "priceOnRequest": "Price on request",
+    "backToProducts": "All Products",
+    "relatedTitle": "You might also like",
+    "specsTitle": "Specifications",
+    "specsEmpty": "Specifications available on request.",
+    "tripleGuard": {
+      "eyebrow": "Built for UAE conditions",
+      "title": "Triple Guard Protection",
+      "subtitle": "Every WR Doors product is engineered against the three biggest threats to doors in the UAE climate.",
+      "water": {
+        "title": "Water Resistant",
+        "body": "Our WPC composite core is completely sealed against moisture — essential in UAE's 85–100% summer humidity."
+      },
+      "sound": {
+        "title": "Sound Insulated",
+        "body": "Dense composite construction reduces airborne noise by up to 35 dB, creating quieter, more private spaces."
+      },
+      "termite": {
+        "title": "Termite Proof",
+        "body": "No organic wood content in the structural core means zero termite risk — backed by our 10-year warranty."
+      }
+    },
+    "quoteModal": {
+      "title": "Request a Quote",
+      "subtitle": "Leave your details and we'll get back to you within 24 hours.",
+      "productLabel": "Product",
+      "nameLabel": "Full Name",
+      "namePlaceholder": "Your name",
+      "phoneLabel": "Phone / WhatsApp",
+      "phonePlaceholder": "+971 50 000 0000",
+      "messageLabel": "Project Details",
+      "messagePlaceholder": "Villa/apartment location, required dimensions, quantity, timeline…",
+      "send": "Send Inquiry",
+      "sending": "Sending…",
+      "whatsappAlt": "Or message us directly on WhatsApp",
+      "success": "Inquiry received!",
+      "successBody": "We'll reply within 24 hours. For a faster response, message us on WhatsApp."
+    },
     "categories": {
       "wpcDoors": "WPC Doors",
+      "wpcDoorsTitle": "Premium WPC Doors",
       "wpcDoorsSubtitle": "Premium Wood Plastic Composite for interiors and wet zones",
+      "wpcDoorsDesc": "Humidity-resistant Wood Plastic Composite for interior doors, bathroom doors, and custom sizes.",
       "pivotDoors": "Pivot Aluminium Doors",
+      "pivotDoorsTitle": "Luxury Pivot Aluminium Doors",
       "pivotDoorsSubtitle": "Luxury exterior entryways with bold proportions",
+      "pivotDoorsDesc": "Statement entryways in 6000-series aluminium — built for UAE villas with powder-coat finishes that resist salt and dust.",
       "slidingSystems": "Sliding Systems",
+      "slidingSystemsTitle": "Interior Sliding Systems",
       "slidingSystemsSubtitle": "Glass and aluminium space-savers for modern interiors",
+      "slidingSystemsDesc": "Glass-and-aluminium space-savers with floor-flush soft-close tracks — ideal for open-plan apartments.",
       "wallCladding": "Wall Cladding",
-      "wallCladdingSubtitle": "Fluted and patterned panels that elevate any room"
+      "wallCladdingTitle": "Decorative Wall Cladding",
+      "wallCladdingSubtitle": "Fluted and patterned panels that elevate any room",
+      "wallCladdingDesc": "Fluted and patterned WPC panels that transform accent walls — available in walnut, oak, and custom finishes."
     }
   },
   "footer": {
