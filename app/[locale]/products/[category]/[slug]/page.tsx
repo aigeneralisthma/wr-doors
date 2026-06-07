@@ -5,12 +5,16 @@ import { ChevronRight, MessageSquare } from "lucide-react";
 
 import { BRAND, whatsappUrl } from "@/lib/constants";
 import {
-  PRODUCTS,
   PRODUCT_CATEGORY_SLUGS,
-  productsByCategory,
-  localized,
   type ProductCategorySlug,
 } from "@/lib/products";
+import { productSpecsBySlug } from "@/lib/product-specs";
+import {
+  getProductBySlug,
+  getProducts,
+  getProductSlugsForStaticParams,
+} from "@/lib/supabase/queries";
+import { localized, productImage } from "@/lib/supabase/image-helpers";
 import { Link } from "@/i18n/navigation";
 import { Container } from "@/components/layout/container";
 import { ProductImage } from "@/components/ui/product-image";
@@ -20,9 +24,15 @@ import { TripleGuardPanel } from "@/components/products/triple-guard-panel";
 import { RelatedProducts } from "@/components/products/related-products";
 import { QuoteModal } from "@/components/products/quote-modal";
 
+/* ── ISR: revalidate from Supabase every 60s ──────────────────────────── */
+export const revalidate = 60;
+
 /* ── Static params ─────────────────────────────────────────────────────── */
-export function generateStaticParams() {
-  return PRODUCTS.map((p) => ({ category: p.category, slug: p.slug }));
+export async function generateStaticParams() {
+  // Use the static (no-cookies) client here — `generateStaticParams` runs at
+  // build time without an HTTP request, so the cookie-based server client
+  // throws. See lib/supabase/static.ts.
+  return await getProductSlugsForStaticParams();
 }
 
 /* ── Metadata ──────────────────────────────────────────────────────────── */
@@ -33,10 +43,10 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale, category, slug } = await params;
 
-  const product = PRODUCTS.find(
-    (p) => p.category === category && p.slug === slug,
-  );
-  if (!product) return { title: "Not Found" };
+  const product = await getProductBySlug(slug);
+  if (!product || product.category !== category) {
+    return { title: "Not Found" };
+  }
 
   const name = localized(product.name_en, product.name_ar, locale);
   const description = localized(
@@ -78,10 +88,15 @@ export default async function ProductDetailPage({
     notFound();
   }
 
-  const product = PRODUCTS.find(
-    (p) => p.category === category && p.slug === slug,
-  );
-  if (!product) notFound();
+  const product = await getProductBySlug(slug);
+  if (!product || product.category !== category) {
+    notFound();
+  }
+
+  const image = productImage(product);
+  if (!image) notFound(); // can't render without resolvable image
+
+  const specs = productSpecsBySlug(slug);
 
   const t = await getTranslations({ locale, namespace: "products" });
   const tCat = await getTranslations({ locale, namespace: "products.categories" });
@@ -105,16 +120,15 @@ export default async function ProductDetailPage({
 
   const categoryLabel = tCat(catLabelKey);
 
-  // Related: up to 3 other products from the same category, excluding this one
-  const sameCategoryOthers = productsByCategory(
-    product.category as ProductCategorySlug,
-  ).filter((p) => p.slug !== slug);
-
-  // If same category has fewer than 2, pad with from other categories
-  const otherCategory = PRODUCTS.filter(
+  // Related: pull all products and split same-category vs other-category.
+  // Same-category first, padded with others if we don't have 3.
+  const allProducts = await getProducts();
+  const sameCategoryOthers = allProducts.filter(
+    (p) => p.category === product.category && p.slug !== slug,
+  );
+  const otherCategory = allProducts.filter(
     (p) => p.category !== product.category && p.slug !== slug,
   );
-
   const related = [...sameCategoryOthers, ...otherCategory].slice(0, 3);
 
   // WhatsApp link pre-filled with product name
@@ -153,7 +167,7 @@ export default async function ProductDetailPage({
             {/* ── Image column ── */}
             <div className="sticky top-24">
               <ProductImage
-                image={product.image}
+                image={image}
                 alt={name}
                 priority
                 sizes="(max-width: 1024px) 100vw, 55vw"
@@ -184,8 +198,8 @@ export default async function ProductDetailPage({
 
               {/* Price */}
               <p className="font-mono text-sm font-medium text-muted-foreground">
-                {product.priceFromAed
-                  ? t("priceFrom", { price: product.priceFromAed.toLocaleString() })
+                {product.price_from_aed
+                  ? t("priceFrom", { price: product.price_from_aed.toLocaleString() })
                   : t("priceOnRequest")}
               </p>
 
@@ -195,13 +209,13 @@ export default async function ProductDetailPage({
               </p>
 
               {/* Specs table */}
-              {product.specs && product.specs.length > 0 && (
+              {specs.length > 0 && (
                 <div>
                   <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                     {t("specsTitle")}
                   </h2>
                   <dl className="divide-y divide-border rounded-xl border border-border overflow-hidden">
-                    {product.specs.map((spec) => (
+                    {specs.map((spec) => (
                       <div
                         key={spec.label_en}
                         className="flex items-start justify-between gap-4 px-4 py-3 text-sm even:bg-muted/30"

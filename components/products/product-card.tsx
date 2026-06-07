@@ -5,18 +5,36 @@ import { cn } from "@/lib/utils";
 import { Link } from "@/i18n/navigation";
 import { ProductImage } from "@/components/ui/product-image";
 import { Badge } from "@/components/ui/badge";
-import type { Product, ProductCategorySlug } from "@/lib/products";
+import type { OptimizedImage } from "@/lib/image-manifest";
+import type { ProductCategory } from "@/lib/supabase/database.types";
 
 /** Maps category slug to a display label (used for the badge on the card). */
-const CATEGORY_LABELS: Record<ProductCategorySlug, { en: string; ar: string }> = {
+const CATEGORY_LABELS: Record<ProductCategory, { en: string; ar: string }> = {
   "wpc-doors": { en: "WPC Doors", ar: "أبواب WPC" },
   "pivot-aluminium-doors": { en: "Pivot Aluminium", ar: "محوري ألمنيوم" },
   "sliding-systems": { en: "Sliding Systems", ar: "أنظمة منزلقة" },
   "wall-cladding": { en: "Wall Cladding", ar: "كسوة الجدران" },
 };
 
+/**
+ * Subset of fields the card actually renders. Compatible with both the
+ * Supabase `ProductRow` and the old `Product` type from `lib/products.ts`
+ * (during transition).
+ */
+export interface ProductCardData {
+  slug: string;
+  category: ProductCategory;
+  name_en: string;
+  name_ar: string;
+  description_en: string;
+  description_ar: string;
+  price_from_aed?: number | null;
+}
+
 export interface ProductCardProps {
-  product: Product;
+  product: ProductCardData;
+  /** Resolved OptimizedImage (caller looks up via `productImage(row)` from lib/supabase/image-helpers) */
+  image: OptimizedImage;
   locale: string;
   /** Label for the "View Details" link (passed from server translation context). */
   viewDetailsLabel: string;
@@ -35,6 +53,7 @@ export interface ProductCardProps {
  */
 export function ProductCard({
   product,
+  image,
   locale,
   viewDetailsLabel,
   priceOnRequestLabel,
@@ -60,7 +79,7 @@ export function ProductCard({
       {/* Image */}
       <Link href={href} className="block" tabIndex={-1} aria-hidden>
         <ProductImage
-          image={product.image}
+          image={image}
           alt={name}
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
           className="aspect-[16/10] w-full"
@@ -88,8 +107,8 @@ export function ProductCard({
 
         {/* Price */}
         <p className="text-xs font-medium text-muted-foreground font-mono">
-          {product.priceFromAed
-            ? priceFromLabel ?? `From AED ${product.priceFromAed}`
+          {product.price_from_aed
+            ? priceFromLabel ?? `From AED ${product.price_from_aed}`
             : priceOnRequestLabel}
         </p>
 

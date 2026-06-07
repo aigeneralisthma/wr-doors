@@ -5,6 +5,108 @@
 
 ---
 
+## Prompt 8 — Form Integration + Resend Emails + Supabase Reads ✅
+
+**Date**: 2026-06-07
+**Model used**: claude-opus-4-7
+**Status**: Complete (Resend signup is still on user TODO — see "Known issues")
+
+### Goal
+Connect the static site to the real Supabase backend: forms write actual leads/bookings, public pages read product/project content from the database, and admin gets email alerts when something lands.
+
+### Deliverables
+
+**Server actions** (`app/actions/`)
+- `leads.ts` — `submitQuoteLead`, `submitContactLead` (rate-limit → Zod → honeypot → Supabase insert → fire-and-forget Resend)
+- `bookings.ts` — `submitBooking` (same pattern, lower rate limit because bookings imply commitment)
+- Generic, locale-aware error responses (never leak DB internals)
+- All actions use **server-generated UUIDs** for inserts — anon has no SELECT policy on leads/bookings, so chaining `.select("id").single()` after `.insert()` would fail RLS. Cleaner to mint the ID server-side, use it in the response + email templates, and skip the RETURNING SELECT.
+
+**Email infrastructure** (`lib/email/` + `emails/`)
+- `lib/email/client.ts` — server-only Resend lazy singleton + env-driven `getAdminEmail()` / `getFromAddress()`
+- `lib/email/send.ts` — typed `sendCustomer*Confirmation()` + `sendAdmin*Alert()` helpers (silent failure: log + return `{ ok: false }` but don't throw, so a Resend outage doesn't block lead capture)
+- 5 React Email templates:
+  - `_layout.tsx` — shared shell: navy header with WR Doors wordmark + "Powered by DODA" microtext, gold accent dividers, branded footer with contact info + DODA endorsement line (bilingual)
+  - `customer-contact-confirmation.tsx` — bilingual EN/AR with `dir="rtl"` for Arabic, WhatsApp + phone CTAs
+  - `customer-quote-confirmation.tsx` — same pattern, includes the asked-about product label
+  - `customer-booking-confirmation.tsx` — shows confirmed details (service, locale-formatted date, area)
+  - `admin-lead-alert.tsx` — English admin alert with tappable phone/WhatsApp/email links + customer-locale flag so admin knows which language to reply in
+  - `admin-booking-alert.tsx` — same idea but with "Action needed: confirm appointment" framing
+
+**Rate limiting + honeypot** (`lib/rate-limit.ts` + schema updates)
+- `lib/rate-limit.ts` — in-memory `lru-cache` based, keyed by `(ip, endpoint)`, 5 req/min default
+- `getClientIp(headers)` — extracts from `x-forwarded-for` → `x-real-ip` → `"unknown"`
+- All 3 schemas (`booking.ts`, `quote.ts`, `contact.ts`) gained an optional `_botField` honeypot
+- All 3 forms render the honeypot as a hidden absolute-positioned input
+- Server actions silently `return { ok: true }` if honeypot fires (no info leak to bots)
+
+**Form wiring** (`components/forms/*` + `components/booking/*`)
+- All 3 forms replaced `console.log` stubs with `await action(...)` calls
+- New `serverError` state — displays inline alert (red, with icon) above submit button when action returns `{ ok: false, error }`
+- `_botField` registered in form defaults
+- Form-side error catch handles thrown errors (network failures, etc.)
+
+**Public pages → Supabase reads** (full swap)
+- New `lib/supabase/static.ts` — cookie-free Supabase client for build-time + server-component reads. The `@supabase/ssr` cookie-based client makes routes fully dynamic (loses ISR); the static client keeps routes SSG-eligible.
+- New `lib/supabase/image-helpers.ts` — `productImage(row)` / `projectImage(row)` extract the local image manifest entry from a Supabase URL path. Once admin uploads to Storage in Prompt 9, we'll add a fallback path for non-manifest URLs.
+- New `lib/product-specs.ts` — static spec metadata keyed by product slug (extracted from `lib/products.ts`). Specs aren't in the Supabase schema yet — they'll move there in Prompt 9 when the admin dashboard can edit them.
+- New `lib/supabase/queries.ts` helper `getProductSlugsForStaticParams()` — uses static client, safe inside `generateStaticParams` where `cookies()` isn't available.
+- Updated pages: `app/[locale]/products/page.tsx`, `app/[locale]/products/[category]/page.tsx`, `app/[locale]/products/[category]/[slug]/page.tsx`, `app/[locale]/projects/page.tsx`
+- Updated sections: `components/sections/product-categories.tsx`, `components/sections/featured-projects.tsx`
+- Refactored `ProductCard` / `ProjectCard` / `ProjectFilter` / `RelatedProducts` to accept Supabase row shapes
+- Added `export const revalidate = 60` (1-minute ISR) to all 4 product/projects routes
+
+**User-facing walkthrough** (`RESEND_SETUP.md`)
+- Sign up at resend.com **using `hafizazeem@gmail.com`** (sandbox limitation: only delivers to account-owner email)
+- Create `wr-doors-dev` API key → paste into `.env.local`
+- Set `RESEND_FROM_EMAIL` to `"WR Doors <onboarding@resend.dev>"` (sandbox)
+- Set `ADMIN_NOTIFICATION_EMAIL` to `hafizazeem@gmail.com`
+- Verify by submitting any form → row appears in Supabase + email lands in inbox
+
+### Test Results
+
+- ✅ **TypeScript**: clean (exit 0)
+- ✅ **ESLint**: clean (0 errors, 0 warnings)
+- ✅ **Vitest unit tests**: 40/40 passing (no regressions)
+- ✅ **Production build**: all 11 routes prerendered as SSG with `1m 1y` ISR cache (revalidate every 60s, max age 1 year)
+- ✅ **Playwright E2E** — mobile: 61/61 passing including all 3 form-submit happy paths
+
+### Bug fixes during this prompt
+
+1. **`generateStaticParams` used `cookies()` indirectly** via the `@supabase/ssr` server client → build crashed. Fix: new `lib/supabase/static.ts` cookie-free client + `getProductSlugsForStaticParams()` helper.
+2. **All public pages went `(Dynamic)` instead of `(SSG)`** because the cookie-based client forces dynamic rendering. Fix: switched all helpers in `lib/supabase/queries.ts` to use the static client. RLS at the DB layer still controls what public reads can see.
+3. **All 3 form submissions failed with empty `{}` error** from Supabase. Root cause: `console.error("...", err)` doesn't expand PostgresError's non-enumerable properties → looks empty. Fix: explicit `${err?.code} ${err?.message}` template literal logging.
+4. **All 3 form inserts still failed with RLS code 42501 after better logging revealed it.** Root cause: `.insert(...).select("id").single()` does `INSERT ... RETURNING id;` — the RETURNING clause needs SELECT permission, which `anon` doesn't have on `leads`/`bookings` (only INSERT). Fix: generate UUIDs server-side via `crypto.randomUUID()` and drop the `.select()` chain; use the locally-minted ID in the email templates.
+
+### Known issues / deferred
+
+- ⏳ **Resend API key not yet in `.env.local`** — user needs to complete the Resend signup walkthrough in `RESEND_SETUP.md`. Until then: form submissions still save to Supabase ✅, customer sees success state ✅, but admin alert + customer confirmation emails fail silently (logged as `[email] send threw Error: RESEND_API_KEY is not set`).
+- ❌ Storage upload UI → Prompt 9
+- ❌ Storage RLS for uploads → Prompt 9
+- ❌ Admin dashboard `/admin/*` → Prompt 9
+- ❌ Real `wrdoors.com` domain in Resend (deliver to ANY customer email) → Prompt 10 / pre-launch
+- ❌ Resend webhook delivery tracking → Phase 2
+- ❌ ICS calendar attachment on booking confirmation → Phase 2
+- ❌ Upstash Redis rate limit (currently in-memory per Vercel function instance) → Phase 2 if needed
+
+### Security review
+
+- ✅ `lib/email/client.ts` imports `"server-only"` → fails build if ever imported in a Client Component
+- ✅ All 3 server actions start with `"use server"` + run Zod BEFORE any DB write or email
+- ✅ Honeypot returns `{ ok: true }` silently (bots don't learn they were detected)
+- ✅ Static Supabase client uses anon key — RLS at DB layer enforces what they can write (column-level allow-list)
+- ✅ Email send failures logged but don't throw — submission still succeeds for the user
+- ✅ Customer-facing error messages are generic ("Something went wrong, please call us")
+- ✅ `ADMIN_NOTIFICATION_EMAIL` pulled from env — no hardcoded address in code
+- ✅ Rate limit applies to all 3 endpoints (5/min for leads, 3/min for bookings)
+- ✅ Generic error messages in EN + AR — no DB/Resend internals leaked to user
+
+### Commit
+- Branch: `main`
+- Message: `feat(integration): wire forms to Supabase + Resend, swap public pages to Supabase reads`
+
+---
+
 ## Prompt 7 — Supabase Setup (Schema + RLS + Storage + Seed) ✅
 
 **Date**: 2026-06-07

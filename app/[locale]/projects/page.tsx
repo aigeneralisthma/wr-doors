@@ -4,11 +4,18 @@ import Link from "next/link";
 import { MessageCircle } from "lucide-react";
 
 import { BRAND, whatsappUrl } from "@/lib/constants";
-import { PROJECTS } from "@/lib/projects";
+import { getProjects } from "@/lib/supabase/queries";
+import { localized, projectImage } from "@/lib/supabase/image-helpers";
 import { Container } from "@/components/layout/container";
 import { GoldAccent } from "@/components/brand/gold-accent";
 import { Button } from "@/components/ui/button";
-import { ProjectFilter } from "@/components/projects/project-filter";
+import {
+  ProjectFilter,
+  type EnrichedProject,
+} from "@/components/projects/project-filter";
+
+/* ── ISR: revalidate from Supabase every 60s ──────────────────────────── */
+export const revalidate = 60;
 
 /* ── Static params ─────────────────────────────────────────────────────── */
 export function generateStaticParams() {
@@ -45,20 +52,24 @@ export default async function ProjectsPage({
 
   const t = await getTranslations({ locale, namespace: "projects" });
 
-  /** Resolve per-project bilingual strings server-side and pass them to
-   *  the Client filter component as a plain serializable object. The
-   *  filter component itself uses `useTranslations` for the short UI
-   *  labels (filter pills, count, empty state). */
-  const items = Object.fromEntries(
-    PROJECTS.map((p) => [
-      p.key,
-      {
-        title: t(`items.${p.key}.title`),
-        location: t(`items.${p.key}.location`),
-        summary: t(`items.${p.key}.summary`),
-      },
-    ]),
-  );
+  // Fetch published projects from Supabase, resolve each to the locale-
+  // appropriate bilingual fields + an OptimizedImage, then hand the plain
+  // serializable shape to the Client filter component.
+  const rows = await getProjects();
+  const enrichedProjects: EnrichedProject[] = rows
+    .map((row) => {
+      const image = projectImage(row);
+      if (!image) return null;
+      return {
+        slug: row.slug,
+        category: row.category,
+        title: localized(row.title_en, row.title_ar, locale),
+        location: localized(row.location_en, row.location_ar, locale),
+        summary: localized(row.description_en, row.description_ar, locale),
+        image,
+      };
+    })
+    .filter((p): p is EnrichedProject => p !== null);
 
   const waText =
     locale === "ar"
@@ -86,7 +97,7 @@ export default async function ProjectsPage({
       {/* ── Filter + grid ── */}
       <section className="py-14 md:py-20">
         <Container>
-          <ProjectFilter items={items} />
+          <ProjectFilter projects={enrichedProjects} />
         </Container>
       </section>
 

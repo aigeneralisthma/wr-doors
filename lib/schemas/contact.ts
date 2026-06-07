@@ -27,6 +27,12 @@ export const contactSchema = z.object({
   message: z
     .string()
     .min(10, "Please write at least a short message (10 characters)"),
+  /**
+   * Honeypot — hidden input that bots fill but humans never see.
+   * Server action rejects submissions where this is non-empty.
+   * Optional + tolerates undefined so the form doesn't fail Zod parse.
+   */
+  _botField: z.string().optional(),
 });
 
 export type ContactFormData = z.infer<typeof contactSchema>;

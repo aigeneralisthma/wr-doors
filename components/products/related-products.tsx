@@ -3,10 +3,11 @@ import { getTranslations } from "next-intl/server";
 
 import { Container } from "@/components/layout/container";
 import { ProductCard } from "@/components/products/product-card";
-import type { Product } from "@/lib/products";
+import { productImage } from "@/lib/supabase/image-helpers";
+import type { ProductRow } from "@/lib/supabase/database.types";
 
 interface RelatedProductsProps {
-  products: Product[];
+  products: ProductRow[];
   locale: string;
 }
 
@@ -31,15 +32,20 @@ export async function RelatedProducts({ products, locale }: RelatedProductsProps
           {t("relatedTitle")}
         </h2>
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {products.map((product) => (
-            <ProductCard
-              key={product.slug}
-              product={product}
-              locale={locale}
-              viewDetailsLabel={t("viewDetails")}
-              priceOnRequestLabel={t("priceOnRequest")}
-            />
-          ))}
+          {products.map((product) => {
+            const image = productImage(product);
+            if (!image) return null;
+            return (
+              <ProductCard
+                key={product.slug}
+                product={product}
+                image={image}
+                locale={locale}
+                viewDetailsLabel={t("viewDetails")}
+                priceOnRequestLabel={t("priceOnRequest")}
+              />
+            );
+          })}
         </div>
       </Container>
     </section>

@@ -3,25 +3,28 @@
 import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 
-import {
-  PROJECT_CATEGORIES,
-  PROJECTS_WITH_IMAGES,
-  type ProjectCategory,
-} from "@/lib/projects";
+import type { OptimizedImage } from "@/lib/image-manifest";
+import type { ProjectCategory } from "@/lib/supabase/database.types";
 import { ProjectCard } from "./project-card";
 
 type FilterValue = "all" | ProjectCategory;
 
+/**
+ * Per-project enriched data: bilingual strings already resolved server-side
+ * for the active locale, plus the OptimizedImage looked up via image-helpers.
+ * Plain serializable shape so Server → Client boundary is clean.
+ */
+export interface EnrichedProject {
+  slug: string;
+  category: ProjectCategory;
+  title: string;
+  location: string;
+  summary: string;
+  image: OptimizedImage;
+}
+
 interface ProjectFilterProps {
-  /**
-   * Per-project translated strings keyed by `Project.key`.
-   * Shape: `{ dubaiHillsVilla: { title, location, summary }, ... }`
-   *
-   * Resolved by the Server Component page and passed in as a plain
-   * serializable object so we don't have to ship all item translations
-   * to the client.
-   */
-  items: Record<string, { title: string; location: string; summary: string }>;
+  projects: EnrichedProject[];
 }
 
 /**
@@ -29,22 +32,23 @@ interface ProjectFilterProps {
  *
  * State lives entirely in this component (no URL params), so navigation
  * is instant and the page stays SSG. When the user picks a category,
- * we just filter the in-memory `PROJECTS_WITH_IMAGES` list.
+ * we just filter the projects array in-memory.
  *
  * Translation strategy: filter labels + count + empty state use
  * `useTranslations("projects")` directly here — next-intl supports
  * Client Components and these keys are short, so the bundle impact
  * is negligible. Per-project bilingual content is heavier, so it stays
- * server-resolved and is passed in via `items`.
+ * server-resolved (via `localized()` in the page) and is passed in
+ * already-translated via `projects`.
  */
-export function ProjectFilter({ items }: ProjectFilterProps) {
+export function ProjectFilter({ projects }: ProjectFilterProps) {
   const t = useTranslations("projects");
   const [active, setActive] = useState<FilterValue>("all");
 
   const filtered = useMemo(() => {
-    if (active === "all") return PROJECTS_WITH_IMAGES;
-    return PROJECTS_WITH_IMAGES.filter((p) => p.category === active);
-  }, [active]);
+    if (active === "all") return projects;
+    return projects.filter((p) => p.category === active);
+  }, [active, projects]);
 
   const FILTER_OPTIONS: Array<{ key: FilterValue; labelKey: string }> = [
     { key: "all", labelKey: "filterAll" },
@@ -99,25 +103,19 @@ export function ProjectFilter({ items }: ProjectFilterProps) {
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((project) => {
-            const item = items[project.key];
-            if (!item) return null;
-            return (
-              <ProjectCard
-                key={project.key}
-                project={project}
-                title={item.title}
-                location={item.location}
-                summary={item.summary}
-                viewLabel={t("viewProject")}
-              />
-            );
-          })}
+          {filtered.map((project) => (
+            <ProjectCard
+              key={project.slug}
+              category={project.category}
+              image={project.image}
+              title={project.title}
+              location={project.location}
+              summary={project.summary}
+              viewLabel={t("viewProject")}
+            />
+          ))}
         </div>
       )}
     </div>
   );
 }
-
-/** Re-exported for use in tests / pages */
-export { PROJECT_CATEGORIES };

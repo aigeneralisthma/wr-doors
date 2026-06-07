@@ -16,11 +16,13 @@ export const bookingContactSchema = z.object({
   area: z.string().min(2, "Please enter your area or emirate"),
   date: z.string().min(1, "Please select a preferred date"),
   notes: z.string().optional(),
+  /** Honeypot — see contact.ts */
+  _botField: z.string().optional(),
 });
 
 export type BookingContactData = z.infer<typeof bookingContactSchema>;
 
-/** Combined shape submitted to the stub handler */
+/** Combined shape submitted to the server action */
 export interface BookingSubmission extends BookingContactData {
   service: ServiceType;
 }

@@ -255,6 +255,7 @@
     "successBody": "We'll confirm your appointment via WhatsApp within a few hours. For urgent queries, message us directly.",
     "whatsappFollowUp": "Message us on WhatsApp",
     "bookAnother": "Book another",
+    "genericError": "Something went wrong. Please try again or call us directly at +971 55 403 9966.",
     "services": {
       "consultation": "Free Consultation",
       "installation": "Supply & Installation",
@@ -296,6 +297,7 @@
     "successBody": "We'll send a detailed estimate to your WhatsApp within 24 hours.",
     "whatsappFollowUp": "Chat on WhatsApp",
     "newRequest": "Submit another request",
+    "genericError": "Something went wrong. Please try again or call us directly at +971 55 403 9966.",
     "trustResponse": "24-hour response",
     "trustFree": "Free & no obligation",
     "trustLocal": "Local UAE team",
@@ -439,6 +441,7 @@
     "successBody": "Thanks for reaching out — our team will respond within 24 hours. For urgent matters, message us on WhatsApp.",
     "whatsappFollowUp": "Message us on WhatsApp",
     "newRequest": "Send another message",
+    "genericError": "Something went wrong. Please try again or call us directly at +971 55 403 9966.",
     "infoTitle": "Other ways to reach us",
     "infoSubtitle": "Powered by DODA",
     "phoneInfoLabel": "Phone",

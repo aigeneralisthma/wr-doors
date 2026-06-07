@@ -39,6 +39,8 @@ export const quoteSchema = z.object({
   message: z
     .string()
     .min(10, "Please describe your project (at least 10 characters)"),
+  /** Honeypot — see contact.ts */
+  _botField: z.string().optional(),
 });
 
 export type QuoteFormData = z.infer<typeof quoteSchema>;

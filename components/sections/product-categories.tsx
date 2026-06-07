@@ -11,7 +11,10 @@ import {
   StaggerChildren,
   StaggerItem,
 } from "@/components/animations/stagger-children";
-import { featuredByCategory, type ProductCategorySlug } from "@/lib/products";
+import { type ProductCategorySlug } from "@/lib/products";
+import { getFeaturedProducts } from "@/lib/supabase/queries";
+import { productImage } from "@/lib/supabase/image-helpers";
+import type { ProductRow } from "@/lib/supabase/database.types";
 
 /**
  * ProductCategoriesSection — visual entry point into the four product lines.
@@ -54,7 +57,14 @@ const CATEGORY_ORDER: ReadonlyArray<{
 
 export async function ProductCategoriesSection({ locale }: { locale: string }) {
   const t = await getTranslations();
-  const featured = featuredByCategory();
+  // Fetch featured products from Supabase, build a category → row lookup.
+  const featuredRows = await getFeaturedProducts();
+  const featured: Partial<Record<ProductCategorySlug, ProductRow>> = {};
+  for (const row of featuredRows) {
+    if (!featured[row.category]) {
+      featured[row.category] = row;
+    }
+  }
 
   return (
     <section
@@ -89,6 +99,7 @@ export async function ProductCategoriesSection({ locale }: { locale: string }) {
         <StaggerChildren className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {CATEGORY_ORDER.map(({ slug, titleKey, subtitleKey }) => {
             const product = featured[slug];
+            const image = product ? productImage(product) : null;
 
             return (
               <StaggerItem key={slug}>
@@ -97,9 +108,9 @@ export async function ProductCategoriesSection({ locale }: { locale: string }) {
                   className="group block h-full overflow-hidden rounded-2xl border border-border bg-background shadow-sm transition-all hover:-translate-y-1 hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                   aria-label={t(titleKey)}
                 >
-                  {product ? (
+                  {product && image ? (
                     <ProductImage
-                      image={product.image}
+                      image={image}
                       alt={
                         locale === "ar" ? product.name_ar : product.name_en
                       }

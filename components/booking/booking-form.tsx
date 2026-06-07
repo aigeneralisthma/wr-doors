@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslations } from "next-intl";
 import {
+  AlertCircle,
   Calendar,
   CheckCircle,
   ChevronRight,
@@ -22,6 +23,7 @@ import {
   type ServiceType,
   SERVICE_TYPES,
 } from "@/lib/schemas/booking";
+import { submitBooking } from "@/app/actions/bookings";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -129,10 +131,11 @@ export function BookingForm({ locale }: { locale: string }) {
   const [serviceError, setServiceError] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [serverError, setServerError] = useState<string | null>(null);
 
   const form = useForm<BookingContactData>({
     resolver: zodResolver(bookingContactSchema),
-    defaultValues: { name: "", phone: "", area: "", date: "", notes: "" },
+    defaultValues: { name: "", phone: "", area: "", date: "", notes: "", _botField: "" },
   });
 
   /* ── Step navigation ── */
@@ -154,13 +157,25 @@ export function BookingForm({ locale }: { locale: string }) {
   const handleSubmit = async (data: BookingContactData) => {
     if (!selectedService) return;
     setSubmitting(true);
+    setServerError(null);
 
     const submission: BookingSubmission = { service: selectedService, ...data };
-    await new Promise((r) => setTimeout(r, 900));
-    console.log("[Prompt 8 stub] Booking submitted:", submission);
-
-    setSubmitting(false);
-    setSubmitted(true);
+    try {
+      const result = await submitBooking({
+        data: submission,
+        locale: locale === "ar" ? "ar" : "en",
+      });
+      if (result.ok) {
+        setSubmitted(true);
+      } else {
+        setServerError(result.error ?? t("genericError"));
+      }
+    } catch (err) {
+      console.error("[BookingForm] action threw", err);
+      setServerError(t("genericError"));
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleReset = () => {
@@ -168,6 +183,7 @@ export function BookingForm({ locale }: { locale: string }) {
     setSelectedService(null);
     setServiceError(false);
     setSubmitted(false);
+    setServerError(null);
     form.reset();
   };
 
@@ -350,6 +366,23 @@ export function BookingForm({ locale }: { locale: string }) {
               />
             </div>
           </div>
+
+          {/* Honeypot — hidden bot trap */}
+          <div aria-hidden="true" style={{ position: "absolute", left: "-9999px", height: 0, width: 0, overflow: "hidden" }}>
+            <label htmlFor="bk-bot">Leave this empty</label>
+            <input id="bk-bot" type="text" tabIndex={-1} autoComplete="off" {...form.register("_botField")} />
+          </div>
+
+          {/* Server error */}
+          {serverError && (
+            <div
+              role="alert"
+              className="mt-5 flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive"
+            >
+              <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
+              <span>{serverError}</span>
+            </div>
+          )}
 
           {/* Buttons */}
           <div className="mt-8 flex items-center justify-between gap-4">

@@ -1,19 +1,17 @@
 /**
  * Typed query helpers for public-facing data reads.
  *
- * All helpers use the **server** Supabase client and run server-side
- * (Server Components, generateStaticParams, route handlers).
+ * All helpers use the **static** (cookie-free) Supabase client so that
+ * pages calling them stay eligible for SSG / ISR. RLS at the database
+ * layer enforces what anonymous reads can see — these helpers don't
+ * bypass it.
  *
- * RLS is the source of truth — these helpers don't bypass it. If you
- * need admin-only reads (leads, bookings, technicians), you must be
- * authenticated via Supabase Auth (handled in Prompt 9 admin dashboard).
- *
- * NOTE: These helpers are wired but NOT yet called from public pages.
- * Prompt 8 replaces the in-memory `lib/products.ts` / `lib/projects.ts`
- * reads with these queries. For now this file provides the typed surface.
+ * If you need admin-only reads (leads, bookings, technicians), use the
+ * cookie-based `createClient()` from `./server` inside an authenticated
+ * Server Component or Route Handler (handled in Prompt 9 admin dashboard).
  */
 
-import { createClient } from "./server";
+import { createStaticClient } from "./static";
 import type {
   ProductRow,
   ProjectRow,
@@ -28,7 +26,7 @@ import type {
 
 /** Fetch all active products, ordered by featured first then name. */
 export async function getProducts(): Promise<ProductRow[]> {
-  const supabase = await createClient();
+  const supabase = createStaticClient();
   const { data, error } = await supabase
     .from("products")
     .select("*")
@@ -42,7 +40,7 @@ export async function getProducts(): Promise<ProductRow[]> {
 
 /** Fetch one product by slug, or null if missing/inactive. */
 export async function getProductBySlug(slug: string): Promise<ProductRow | null> {
-  const supabase = await createClient();
+  const supabase = createStaticClient();
   const { data, error } = await supabase
     .from("products")
     .select("*")
@@ -58,7 +56,7 @@ export async function getProductBySlug(slug: string): Promise<ProductRow | null>
 export async function getProductsByCategory(
   category: ProductCategory,
 ): Promise<ProductRow[]> {
-  const supabase = await createClient();
+  const supabase = createStaticClient();
   const { data, error } = await supabase
     .from("products")
     .select("*")
@@ -75,7 +73,7 @@ export async function getProductsByCategory(
 
 /** Fetch featured products only (homepage category grid). */
 export async function getFeaturedProducts(): Promise<ProductRow[]> {
-  const supabase = await createClient();
+  const supabase = createStaticClient();
   const { data, error } = await supabase
     .from("products")
     .select("*")
@@ -87,13 +85,35 @@ export async function getFeaturedProducts(): Promise<ProductRow[]> {
   return data ?? [];
 }
 
+/**
+ * Build-time only: fetch all active product slugs+categories for
+ * `generateStaticParams`. Uses the cookie-free static client so it works
+ * during `next build` where `cookies()` isn't available.
+ */
+export async function getProductSlugsForStaticParams(): Promise<
+  Array<{ category: string; slug: string }>
+> {
+  const supabase = createStaticClient();
+  const { data, error } = await supabase
+    .from("products")
+    .select("slug, category")
+    .eq("is_active", true);
+
+  if (error) {
+    throw new Error(
+      `getProductSlugsForStaticParams failed: ${error.message}`,
+    );
+  }
+  return data ?? [];
+}
+
 // =============================================================================
 // PROJECTS
 // =============================================================================
 
 /** Fetch all published projects, ordered by display_order ascending. */
 export async function getProjects(): Promise<ProjectRow[]> {
-  const supabase = await createClient();
+  const supabase = createStaticClient();
   const { data, error } = await supabase
     .from("projects")
     .select("*")
@@ -108,7 +128,7 @@ export async function getProjects(): Promise<ProjectRow[]> {
 export async function getProjectsByCategory(
   category: ProjectCategory,
 ): Promise<ProjectRow[]> {
-  const supabase = await createClient();
+  const supabase = createStaticClient();
   const { data, error } = await supabase
     .from("projects")
     .select("*")
@@ -133,7 +153,7 @@ export async function getProjectsByCategory(
 export async function getSiteSetting(
   key: string,
 ): Promise<SiteSettingRow | null> {
-  const supabase = await createClient();
+  const supabase = createStaticClient();
   const { data, error } = await supabase
     .from("site_settings")
     .select("*")
@@ -148,7 +168,7 @@ export async function getSiteSetting(
 
 /** Fetch all site settings — useful for admin dashboard listing. */
 export async function getAllSiteSettings(): Promise<SiteSettingRow[]> {
-  const supabase = await createClient();
+  const supabase = createStaticClient();
   const { data, error } = await supabase
     .from("site_settings")
     .select("*")

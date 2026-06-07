@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslations } from "next-intl";
-import { CheckCircle, MessageCircle } from "lucide-react";
+import { AlertCircle, CheckCircle, MessageCircle } from "lucide-react";
 
 import {
   quoteSchema,
@@ -12,6 +12,7 @@ import {
   PRODUCT_OPTIONS,
   BUDGET_OPTIONS,
 } from "@/lib/schemas/quote";
+import { submitQuoteLead } from "@/app/actions/leads";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -118,6 +119,7 @@ export function QuoteForm({ locale }: { locale: string }) {
 
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [serverError, setServerError] = useState<string | null>(null);
 
   const {
     register,
@@ -135,19 +137,34 @@ export function QuoteForm({ locale }: { locale: string }) {
       location: "",
       budget: "",
       message: "",
+      _botField: "",
     },
   });
 
   const onSubmit = async (data: QuoteFormData) => {
     setSubmitting(true);
-    await new Promise((r) => setTimeout(r, 900));
-    console.log("[Prompt 8 stub] Quote request submitted:", data);
-    setSubmitting(false);
-    setSubmitted(true);
+    setServerError(null);
+    try {
+      const result = await submitQuoteLead({
+        data,
+        locale: locale === "ar" ? "ar" : "en",
+      });
+      if (result.ok) {
+        setSubmitted(true);
+      } else {
+        setServerError(result.error ?? t("genericError"));
+      }
+    } catch (err) {
+      console.error("[QuoteForm] action threw", err);
+      setServerError(t("genericError"));
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleReset = () => {
     setSubmitted(false);
+    setServerError(null);
     reset();
   };
 
@@ -251,6 +268,23 @@ export function QuoteForm({ locale }: { locale: string }) {
           {...register("message")}
         />
       </Field>
+
+      {/* Honeypot — hidden bot trap */}
+      <div aria-hidden="true" style={{ position: "absolute", left: "-9999px", height: 0, width: 0, overflow: "hidden" }}>
+        <label htmlFor="qt-bot">Leave this empty</label>
+        <input id="qt-bot" type="text" tabIndex={-1} autoComplete="off" {...register("_botField")} />
+      </div>
+
+      {/* Server error */}
+      {serverError && (
+        <div
+          role="alert"
+          className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive"
+        >
+          <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
+          <span>{serverError}</span>
+        </div>
+      )}
 
       <Button
         type="submit"

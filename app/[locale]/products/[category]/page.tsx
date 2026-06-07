@@ -6,14 +6,18 @@ import { ChevronRight } from "lucide-react";
 import { BRAND } from "@/lib/constants";
 import {
   PRODUCT_CATEGORY_SLUGS,
-  productsByCategory,
   type ProductCategorySlug,
 } from "@/lib/products";
+import { getProductsByCategory } from "@/lib/supabase/queries";
+import { productImage } from "@/lib/supabase/image-helpers";
 import { Link } from "@/i18n/navigation";
 import { Container } from "@/components/layout/container";
 import { ProductCard } from "@/components/products/product-card";
 import { CategoryPills } from "@/components/products/category-pills";
 import { GoldAccent } from "@/components/brand/gold-accent";
+
+/* ── ISR: revalidate from Supabase every 60s ──────────────────────────── */
+export const revalidate = 60;
 
 /* ── Static params ─────────────────────────────────────────────────────── */
 export function generateStaticParams() {
@@ -80,7 +84,7 @@ export default async function CategoryPage({
   }
 
   const slug = category as ProductCategorySlug;
-  const products = productsByCategory(slug);
+  const products = await getProductsByCategory(slug);
   const t = await getTranslations({ locale, namespace: "products" });
   const tCat = await getTranslations({ locale, namespace: "products.categories" });
 
@@ -160,15 +164,20 @@ export default async function CategoryPage({
       <section className="py-14 md:py-20">
         <Container>
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {products.map((product) => (
-              <ProductCard
-                key={product.slug}
-                product={product}
-                locale={locale}
-                viewDetailsLabel={t("viewDetails")}
-                priceOnRequestLabel={t("priceOnRequest")}
-              />
-            ))}
+            {products.map((product) => {
+              const image = productImage(product);
+              if (!image) return null;
+              return (
+                <ProductCard
+                  key={product.slug}
+                  product={product}
+                  image={image}
+                  locale={locale}
+                  viewDetailsLabel={t("viewDetails")}
+                  priceOnRequestLabel={t("priceOnRequest")}
+                />
+              );
+            })}
           </div>
         </Container>
       </section>

@@ -1,10 +1,14 @@
 import { ArrowRight } from "lucide-react";
 
 import { ProductImage } from "@/components/ui/product-image";
-import type { ProjectWithImage } from "@/lib/projects";
+import type { OptimizedImage } from "@/lib/image-manifest";
+import type { ProjectCategory } from "@/lib/supabase/database.types";
 
 interface ProjectCardProps {
-  project: ProjectWithImage;
+  /** Used for `data-category` attribute on the article (for tests) */
+  category: ProjectCategory;
+  /** Resolved OptimizedImage (caller looks up via `projectImage(row)`) */
+  image: OptimizedImage;
   /** Translated title shown over the image gradient */
   title: string;
   /** Translated location string (e.g. "Dubai Hills · Residential") */
@@ -32,7 +36,8 @@ interface ProjectCardProps {
  * project detail pages land (post-launch), wrap this in a Link.
  */
 export function ProjectCard({
-  project,
+  category,
+  image,
   title,
   location,
   summary,
@@ -41,11 +46,11 @@ export function ProjectCard({
   return (
     <article
       className="group relative overflow-hidden rounded-2xl bg-card shadow-sm transition-shadow hover:shadow-lg"
-      data-category={project.category}
+      data-category={category}
       aria-label={`${title} — ${location}`}
     >
       <ProductImage
-        image={project.image}
+        image={image}
         alt={title}
         sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
         className="aspect-[4/3] transition-transform duration-500 group-hover:scale-105"
