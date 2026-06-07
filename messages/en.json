@@ -32,15 +32,95 @@
     "back": "Back",
     "learnMore": "Learn more",
     "viewAll": "View all",
+    "explore": "Explore",
     "comingSoon": "Coming soon"
   },
   "home": {
     "metaTitle": "WR Doors — Premium Doors & Home Services in UAE",
     "metaDescription": "Custom WPC doors, pivot aluminium entries, sliding systems, and wall cladding. Crafted in UAE with a 10-year warranty. Powered by DODA.",
+    "heroEyebrow": "Local UAE Manufacturer",
     "heroTagline": "Premium Doors. Crafted in UAE.",
-    "heroSubtitle": "1,000+ designs. Triple guard against water, sound, and termites. Built in our local factory.",
+    "heroSubtitle": "1,000+ designs. Triple guard against water, sound, and termites. Built in our local factory and backed by a 10-year warranty.",
     "heroCtaPrimary": "Explore Products",
-    "heroCtaSecondary": "Get a Free Quote"
+    "heroCtaSecondary": "Get a Free Quote",
+    "heroTrustBadges": {
+      "warranty": "10-Year Warranty",
+      "factory": "Local UAE Factory",
+      "designs": "1,000+ Designs"
+    },
+    "uspsTitle": "Why customers choose us",
+    "uspsEyebrow": "The WR Doors advantage",
+    "usps": {
+      "localFactory": {
+        "title": "Local Factory",
+        "body": "Crafted in the UAE for fast delivery and direct quality control."
+      },
+      "tripleGuard": {
+        "title": "Triple Guard",
+        "body": "Engineered against water, sound, and termites — every door, every time."
+      },
+      "warranty10y": {
+        "title": "10-Year Warranty",
+        "body": "Peace of mind, guaranteed. Backed by our own factory and team."
+      },
+      "exclusiveWpc": {
+        "title": "Exclusive WPC",
+        "body": "Custom UAE designs in premium Wood Plastic Composite — interior to exterior."
+      }
+    },
+    "categoriesEyebrow": "Our catalog",
+    "categoriesTitle": "Doors and surfaces for every space",
+    "categoriesSubtitle": "From luxury entryways to refined interior cladding — explore the four core product lines our factory delivers.",
+    "categoriesCta": "View all products",
+    "projectsEyebrow": "Recent work",
+    "projectsTitle": "Crafted for villas and developments across the UAE",
+    "projectsSubtitle": "A selection of installations completed by our team — from boutique apartments to landmark residences.",
+    "projectsCta": "Browse projects",
+    "whyUsEyebrow": "By the numbers",
+    "whyUsTitle": "A factory-direct relationship, not a reseller",
+    "whyUsStats": {
+      "designs": "Existing or custom designs",
+      "warranty": "Years warranty",
+      "delivery": "Day average delivery",
+      "satisfaction": "Customer satisfaction"
+    },
+    "servicesEyebrow": "How we work",
+    "servicesTitle": "Three ways to engage with WR Doors",
+    "services": {
+      "products": {
+        "title": "Product Sales",
+        "body": "Choose from our catalog or commission a custom design. We measure, manufacture, and install."
+      },
+      "consultation": {
+        "title": "Free Consultation",
+        "body": "Book a site visit. We assess the space, recommend options, and provide a detailed quotation."
+      },
+      "technicians": {
+        "title": "On-Demand Technicians",
+        "body": "Plumber, carpenter, and installation services billed by the hour with assigned specialists."
+      }
+    },
+    "servicesCta": "See all services",
+    "testimonialsEyebrow": "What clients say",
+    "testimonialsTitle": "Trusted by villa owners and developers",
+    "testimonialsPlaceholder": "Verified reviews coming soon. In the meantime, contact us for client references.",
+    "finalCtaEyebrow": "Ready when you are",
+    "finalCtaTitle": "Let's transform your space",
+    "finalCtaBody": "Tell us about your project — villa, apartment, or commercial. We'll send you a clear quote within 24 hours.",
+    "finalCtaPrimary": "Request a Quote",
+    "finalCtaSecondary": "Book a Consultation"
+  },
+  "products": {
+    "categories": {
+      "wpcDoors": "WPC Doors",
+      "wpcDoorsSubtitle": "Premium Wood Plastic Composite for interiors and wet zones",
+      "pivotDoors": "Pivot Aluminium Doors",
+      "pivotDoorsSubtitle": "Luxury exterior entryways with bold proportions",
+      "slidingSystems": "Sliding Systems",
+      "slidingSystemsSubtitle": "Glass and aluminium space-savers for modern interiors",
+      "wallCladding": "Wall Cladding",
+      "wallCladdingSubtitle": "Fluted and patterned panels that elevate any room"
+    }
   },
   "footer": {
     "tagline": "Premium doors and home services for the UAE.",
