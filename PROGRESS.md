@@ -5,6 +5,90 @@
 
 ---
 
+## Prompt 7 — Supabase Setup (Schema + RLS + Storage + Seed) ✅
+
+**Date**: 2026-06-07
+**Model used**: claude-opus-4-7
+**Status**: Complete
+
+### Goal
+Stand up the production-shape Supabase backend — six PostgreSQL tables with bilingual columns, RLS policies that enforce the security model at the DB layer, Storage buckets for image uploads, an admin Auth user, and a fully-typed Supabase client surface. No UI changes ship; this prompt is pure backend infrastructure.
+
+### Deliverables
+
+**SQL migrations** (paste-into-dashboard workflow, no CLI required)
+- `supabase/migrations/0001_initial_schema.sql` — 6 tables (`products`, `projects`, `leads`, `bookings`, `technicians`, `site_settings`) with bilingual `_en`/`_ar` columns where applicable, Postgres CHECK constraints in place of CREATE TYPE ENUMs (easier to evolve), `updated_at` auto-refresh triggers, indexes on common queries, RLS enabled on all six tables, policies for: public read on content tables, anon insert with column-level validation on `leads`+`bookings`, admin (`auth.uid() IS NOT NULL`) full access everywhere
+- `supabase/seed/0001_seed.sql` — 8 products (mirrors `lib/products.ts`), 6 projects (mirrors `lib/projects.ts` + Arabic from `messages/ar.json`), 10 default `site_settings` rows (hero, contact info, hours, legal disclosure) — all with `ON CONFLICT DO NOTHING` for idempotent re-runs
+
+**TypeScript surface**
+- `lib/supabase/database.types.ts` — hand-written `Database` type matching the SQL schema exactly (chose hand-written over `supabase gen types` to avoid Docker dependency since user opted for paste-SQL workflow)
+- `lib/supabase/client.ts` + `server.ts` — updated to use `createBrowserClient<Database>` / `createServerClient<Database>` for full type inference on all queries
+- `lib/supabase/queries.ts` — typed query helpers: `getProducts()`, `getProductBySlug(slug)`, `getProductsByCategory(cat)`, `getFeaturedProducts()`, `getProjects()`, `getProjectsByCategory(cat)`, `getSiteSetting(key)`, `getAllSiteSettings()`, `localizeSiteSetting(setting, locale)` — all server-side, all RLS-respecting
+
+**Tooling**
+- `scripts/test-supabase.ts` — standalone sanity check (uses dotenv to load `.env.local`) that verifies: connection, public reads on products+projects, RLS blocks on anon writes/reads, anon insert path for leads works
+- Added `pnpm supabase:check` script to `package.json`
+- Added `dotenv` dev dependency
+
+**User-facing guide**
+- `SUPABASE_SETUP.md` — step-by-step walkthrough covering: account signup, project provisioning (me-south-1 Bahrain region for UAE latency), credential paste, migration + seed application, admin user creation, 5 public storage buckets, verification command, troubleshooting table. Updated mid-prompt to reflect Supabase's new 2025 API key terminology ("Publishable key" / "Secret key" instead of legacy "anon" / "service_role" labels).
+
+### Supabase project provisioned by user
+- Project: `wr-doors-prod`
+- Region: Middle East (Bahrain) — me-south-1
+- Plan: Free tier
+- All 6 tables created, all 10 RLS policies active
+- 8 products + 6 projects + 10 site_settings seeded
+- Admin user created via Dashboard → Authentication
+- 5 public storage buckets created: `products`, `projects`, `homepage`, `services`, `misc`
+
+### Test Results
+- ✅ **TypeScript**: clean (exit 0) — full type inference through `<Database>` generic
+- ✅ **ESLint**: clean (0 errors, 0 warnings)
+- ✅ **Vitest unit tests**: 40/40 passing (no regressions)
+- ✅ **`pnpm supabase:check`**: 6/6 checks pass
+  1. Connection established
+  2. Anonymous SELECT on products returned 8 rows
+  3. Anonymous SELECT on projects returned 6 rows
+  4. Anonymous INSERT on products **blocked** (code 42501)
+  5. Anonymous SELECT on leads returned 0 rows (RLS hides)
+  6. Anonymous INSERT on leads **succeeds** (form path works)
+
+### Schema additions beyond requirements §10
+- `bookings.area` + `bookings.notes` — booking form collects these (Prompt 5)
+- `leads.subject` — contact form has subject field (Prompt 6)
+- `leads.source` ENUM — distinguishes 'quote' vs 'contact' vs 'product-page' submissions for admin routing
+- `leads.admin_notes` / `bookings.admin_notes` — internal CRM notes (admin-write-only)
+- `products.is_featured` — drives homepage category grid
+- `projects.display_order` — admin can re-order portfolio
+- All timestamps use `TIMESTAMPTZ DEFAULT NOW()` (timezone-aware)
+- `updated_at` auto-refresh via `refresh_updated_at()` trigger function
+
+### Security Review
+- ✅ No service-role key in client code (`client.ts` only uses anon key)
+- ✅ RLS enabled on every table — including `technicians` (no anonymous reads of staff phone numbers)
+- ✅ Anonymous insert policies have column-level validation: `name`/`phone`/`message` non-empty, `locale ∈ ('en','ar')`, `status` defaults to 'new' (anon can't set arbitrary status), `assigned_technician` must be NULL (anon can't auto-assign technicians)
+- ✅ All admin policies check `auth.uid() IS NOT NULL` explicitly (not just `true`)
+- ✅ Storage buckets are public for **reads** only — uploads/deletes will be RLS-locked in Prompt 9
+- ✅ CHECK constraints prevent garbage values in ENUM-like columns (locale, status, category, source, service)
+- ✅ `bookings.preferred_date >= CURRENT_DATE` constraint — anon can't book in the past
+- ✅ `.env.local` already in `.gitignore` — no secrets ever committed
+
+### Known Issues / Deferred
+- **Public pages still read from `lib/products.ts` and `lib/projects.ts`** — Prompt 8 swaps them to Supabase queries (`getProducts()`, `getProjects()`)
+- **Forms still stub `console.log`** — Prompt 8 wires them to insert into `leads`/`bookings`
+- **Admin dashboard doesn't exist yet** — Prompt 9
+- **Storage upload UI** — Prompt 9
+- **Storage RLS policies for uploads** — Prompt 9 (currently buckets are public-read; uploads not yet locked down)
+- **No middleware for `/admin/*`** — Prompt 9
+- **Test lead row** — sanity check inserted one "Sanity Check (Prompt 7)" row in `leads`. Admin can delete via Dashboard → Table Editor when convenient.
+
+### Commit
+- Branch: `main`
+- Message: `feat(supabase): schema, RLS, storage, seed data, typed clients`
+
+---
+
 ## Prompt 6 — Projects, About & Contact Pages ✅
 
 **Date**: 2026-06-07

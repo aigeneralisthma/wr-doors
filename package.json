@@ -15,6 +15,7 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "images": "tsx scripts/optimize-images.ts",
+    "supabase:check": "tsx scripts/test-supabase.ts",
     "verify": "pnpm typecheck && pnpm lint && pnpm test:run"
   },
   "dependencies": {
@@ -56,6 +57,7 @@
     "@types/react-dom": "^19",
     "@types/three": "^0.184.1",
     "@vitejs/plugin-react": "^6.0.2",
+    "dotenv": "^17.4.2",
     "eslint": "^9",
     "eslint-config-next": "16.2.7",
     "eslint-plugin-security": "^4.0.0",
