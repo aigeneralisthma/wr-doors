@@ -5,6 +5,81 @@
 
 ---
 
+## Prompt 6 — Projects, About & Contact Pages ✅
+
+**Date**: 2026-06-07
+**Model used**: claude-opus-4-7
+**Status**: Complete
+
+### Goal
+Ship the three trust-building content pages — a project portfolio, the
+company/DODA-platform story, and a contact channel hub — fully bilingual
+EN + AR with RTL, following the patterns established in Prompts 3–5.
+
+### Deliverables
+
+**Translation keys** (EN + AR, `messages/en.json` + `messages/ar.json`)
+- `projects.*` — meta, hero copy, 4 filter labels (all/residential/commercial/luxury), plural count rule, empty state, bottom CTA, 6 project items each with `title`/`location`/`summary`
+- `about.*` — meta, hero, 3-paragraph company story, DODA Platform section (eyebrow + intro + 3 benefit cards), Factory & QA (4 stats), 4 values, legal disclosure (EN + AR company names), bottom CTA
+- `contact.*` — meta, hero, form labels/placeholders, success state, info panel labels (phone/email/WhatsApp/address/hours), map title/body
+
+**New stub data + schema** (`lib/`)
+- `projects.ts` — `PROJECT_CATEGORIES` (residential/commercial/luxury), `PROJECTS` (6 items referencing existing product images via slug), `PROJECTS_WITH_IMAGES` resolved at module load with fail-fast validation
+- `schemas/contact.ts` — Zod `contactSchema` (name, email, phone, subject, message), `ContactFormData` type
+
+**New components**
+- `components/projects/project-card.tsx` — image card with gradient overlay + location/title/summary (Server Component, decorative-only for v1)
+- `components/projects/project-filter.tsx` — Client Component using `useTranslations` directly + `useState` filter; `role="tab"` pills + count + grid + empty state
+- `components/forms/contact-form.tsx` — Client Component, react-hook-form + Zod, 5-field form with `Field` wrapper (with `htmlFor` for accessible labels), success state with WhatsApp CTA
+
+**New pages** (Server Components, bilingual, SSG)
+- `app/[locale]/projects/page.tsx` — hero + `<ProjectFilter>` + bottom CTA. Pre-resolves per-project bilingual strings server-side and passes as plain object to the Client filter
+- `app/[locale]/about/page.tsx` — 6 sections: hero, company story (with legal entity aside), DODA Platform (navy bg, gold accents, 3 benefit cards), Factory & QA, Values (4 cards), bottom CTA
+- `app/[locale]/contact/page.tsx` — hero + 2-column (form card left + navy info-panel aside right) + Google Maps iframe section (Dubai city-level pin, no API key required)
+
+**Static prerendering** — 6 new SSG routes: `/en/projects`, `/ar/projects`, `/en/about`, `/ar/about`, `/en/contact`, `/ar/contact`
+
+### Test Results
+- ✅ **TypeScript**: clean (exit 0)
+- ✅ **ESLint**: clean (0 errors, 0 warnings)
+- ✅ **Vitest unit tests**: 40/40 passing (no regressions)
+- ✅ **Playwright E2E**: **57/57 new test cases** passing across mobile + tablet + desktop
+  - 19 tests × 3 viewports: /projects (6 tests), /about (6 tests), /contact (7 tests)
+  - All bilingual content verified (/ar routes + RTL dir attribute)
+  - Project filter click-through (Residential → Luxury → All) ✅
+  - DODA Platform section + 3 benefit cards visible ✅
+  - Legal entity disclosure shows EN + AR company names ✅
+  - Contact form: validation, full submit → success state, invalid email error ✅
+  - Google Maps iframe rendered with correct embed URL ✅
+- ✅ **Production build**: 6 new SSG routes prerendered
+
+### Bug fixes applied (during this prompt)
+1. **Server→Client function prop**: `ProjectFilter` originally received a `countFn` closure from the Server Component; that's not serializable across the boundary. Refactored so the Client component uses `useTranslations("projects")` directly for short UI labels (filter pills, plural count, empty state) and only receives the heavy per-project bilingual `items` map as serializable data.
+2. **`aria-pressed` invalid on `role="tab"`**: ARIA tabs use `aria-selected` only. Removed `aria-pressed`.
+3. **E2E selectors — Arabic copy variations**: Tests used full Arabic phrases that were tweaked during translation polishing. Switched to matching stable substrings (e.g., `/في جميع أنحاء الإمارات/`, `/أبواب فاخرة/`, `/إلى فريقنا/`) and matched DODA as a Latin token even on /ar (consistent with brand spec).
+4. **Legal entity strict-mode duplicate**: "Wahat Al Ruman Doors Trading LLC" appears in both the about page aside AND the global footer. Scoped the test selector to `page.locator("main")`.
+5. **React hydration race in contact form**: First `.fill()` raced react-hook-form's `register` pass and the name field came up empty. Fix: `click()` the name input first to trigger React event handler attachment (hydration), then `.fill()`. `submitBtn.toBeEnabled()` alone was insufficient because the button is enabled at SSR.
+
+### Known Issues / Deferred
+- **CSP `frame-src`** for Google Maps iframe — deferred to Prompt 10 (CSP header not yet set per Prompt 3 known issue)
+- **Real project photos** — using product imagery as placeholder; swap when client provides
+- **Real office address for map pin** — currently city-level Dubai pin; client to confirm exact location
+- **Contact form submission** — stub `console.log`; real Supabase + Resend wiring in Prompt 8
+- **Per-project detail pages** — not in plan, deferred to v2
+
+### Security Review
+- No secrets in client code ✅
+- Zod schemas on client (validation only) ✅
+- `noValidate` on form (Zod-only, no native HTML5 popups) ✅
+- Server action stubs: no DB writes (deferred to Prompt 8) ✅
+- iframe uses `referrerPolicy="no-referrer-when-downgrade"` to limit leak ✅
+
+### Commit
+- Branch: `main`
+- Message: `feat(content): bilingual projects, about, contact pages`
+
+---
+
 ## Prompt 5 — Service & Booking Pages ✅
 
 **Date**: 2026-06-07
