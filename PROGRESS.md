@@ -5,6 +5,72 @@
 
 ---
 
+## Prompt 5 — Service & Booking Pages ✅
+
+**Date**: 2026-06-07
+**Model used**: claude-sonnet-4-6
+**Status**: Complete
+
+### Goal
+Build lead-capture flows: services overview, multi-step consultation booking form, and standalone quote request form — all bilingual (EN + AR), fully RTL-aware, with react-hook-form + Zod validation and stub submissions.
+
+### Deliverables
+
+**Translation keys** (EN + AR, `messages/en.json` + `messages/ar.json`)
+- `services.*` — 4 service cards (consultation, installation, technician, custom) with title, description, includes lists (include0–include3), CTA, plus hero copy, bottom CTA, popular badge
+- `booking.*` — step labels, step titles, service type labels + descriptions, contact form labels/placeholders, submit/success states, WhatsApp follow-up
+- `quote.*` — all form field labels/placeholders, product/budget option keys, trust items, submit/success states, meta
+
+**New Zod schemas** (`lib/schemas/`)
+- `booking.ts` — `SERVICE_TYPES`, `bookingContactSchema` (name, phone, area, date, optional notes), `BookingSubmission` type
+- `quote.ts` — `PRODUCT_OPTIONS`, `BUDGET_OPTIONS`, `quoteSchema` (product, quantity, name, phone, optional email with regex refine, location, optional budget, message), `QuoteFormData` type
+
+**New client form components**
+- `components/booking/booking-form.tsx` — 2-step multi-step form: Step 1 = 4 service type cards (aria-pressed buttons with Lucide icons), Step 2 = react-hook-form contact fields; progress bar UI; success state with WhatsApp CTA
+- `components/forms/quote-form.tsx` — single-page form with `Field` wrapper component (with `htmlFor` label association for accessibility), `NativeSelect` styled native `<select>`, all 8 fields; success state with WhatsApp CTA
+
+**New pages** (Server Components, bilingual, SSG)
+- `app/[locale]/services/page.tsx` — 4 service cards in 2×2 grid, each with gold icon circle, optional "Most popular" badge, includes list (✓ icons), CTA; bottom CTA section (WhatsApp + Book)
+- `app/[locale]/book/page.tsx` — hero + centered card containing `<BookingForm>`
+- `app/[locale]/quote/page.tsx` — hero + two-column layout: `<QuoteForm>` left, navy `TrustPanel` async Server Component right (24h response, phone, WhatsApp)
+
+**Static prerendering** — 6 new SSG routes: `/en/services`, `/ar/services`, `/en/book`, `/ar/book`, `/en/quote`, `/ar/quote`
+
+### Test Results
+- ✅ **TypeScript**: clean (exit 0)
+- ✅ **ESLint**: clean (0 errors, 0 warnings)
+- ✅ **Vitest unit tests**: 40/40 passing (no regressions)
+- ✅ **Playwright E2E**: **48/48 new test cases** passing across mobile + tablet + desktop
+  - 16 tests × 3 viewports: /services (5 tests), /book (5 tests), /quote (6 tests)
+  - All bilingual content verified (/ar routes + RTL dir attribute)
+  - Full booking flow (service select → fill details → submit → success state) ✅
+  - Full quote flow (fill all fields via keyboard+label → submit → success state) ✅
+  - Validation errors tested (empty submit, invalid email) ✅
+
+### Bug Fixes Applied (E2E Selector Issues)
+1. **Next.js Dev Tools "Next" button collision** — `/Next/i` regex matched both form "Next" button AND Next.js Dev Tools button at tablet/desktop viewports. Fixed with `{ name: "Next", exact: true }`.
+2. **`Field` component missing `htmlFor`** — `getByLabel()` timed out because `<Label>` in the `Field` wrapper had no `for` attribute. Added `htmlFor` prop to `Field` and wired to all 8 fields in `quote-form.tsx`.
+3. **"Free & no obligation" strict mode** — text appeared twice on quote page (hero eyebrow + trust panel). Fixed with `page.locator("aside").getByText(...)`.
+4. **`selectOption` doesn't update react-hook-form internal state** — `selectOption("wpcDoors")` sets the DOM value but react-hook-form v7.77.0's `onChange` doesn't fire for native `<select>` via Playwright's CDP. Fixed by using `focus()` + `press("ArrowDown")` (keyboard navigation generates `isTrusted=true` `change` events that RHF picks up).
+5. **Zod v4 `.refine()` format** — changed `refine(fn, "message")` to `refine(fn, { message: "..." })` for forward compatibility.
+
+### Known Issues / Deferred
+- WhatsApp click-to-chat: manual only (no automation, per requirements)
+- Form submissions: stub (`console.log`) — real Supabase + Resend wiring in Prompt 8
+- CSP header: still deferred (needs Spline URL, same as Prompt 3)
+
+### Security Review
+- No secrets in client code ✅
+- Zod schemas on client (validation only, no server secrets) ✅
+- `noValidate` on forms (relies on Zod not HTML5 validation) ✅
+- Server action stubs: no data written to DB yet (Prompt 8) ✅
+
+### Commit
+- Branch: `main`
+- Message: `feat(services): bilingual services overview, booking, and quote pages`
+
+---
+
 ## Prompt 4 — Product Catalog & Detail Pages ✅
 
 **Date**: 2026-06-07
