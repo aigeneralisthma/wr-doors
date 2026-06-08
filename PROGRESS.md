@@ -5,6 +5,98 @@
 
 ---
 
+## Prompt 9b — Admin CRUD (Products + Projects + Site Settings + Storage) ✅
+
+**Date**: 2026-06-08
+**Model used**: claude-opus-4-7
+**Status**: Complete
+
+### Goal
+Finish the admin surface: content management. Admin can now create, edit, and delete products + projects + site settings via the dashboard, including multi-image gallery uploads to Supabase Storage. Specs move from the codebase into the DB so they're editable too.
+
+### Deliverables
+
+**Database migrations** (user paste-and-run)
+- `supabase/migrations/0002_add_product_specs.sql` — `ALTER TABLE products ADD COLUMN specs JSONB NOT NULL DEFAULT '[]'::jsonb`, backfills the 8 seeded products with their existing specs (one-shot data move from `lib/product-specs.ts`)
+- `supabase/migrations/0003_storage_rls.sql` — 4 policies on `storage.objects`: public SELECT + admin-only INSERT/UPDATE/DELETE on the 5 buckets (products/projects/homepage/services/misc). Locks down anonymous uploads that were previously open.
+
+**Storage layer** (`lib/supabase/storage.ts`)
+- `uploadFile({ bucket, slug, file })` — server-only, validates size (5 MB max) + MIME (JPG/PNG/WebP/AVIF), generates a random-UUID filename, uploads, returns public URL
+- `deleteFileByUrl(url)` — parses Storage URL → calls remove()
+- `deleteFilesByUrl(urls)` — bulk delete with `Promise.allSettled`
+- `isStorageUrl(url)` — helper for the smart image renderer
+
+**Smart image rendering**
+- `lib/supabase/image-helpers.ts` — added `RenderableImage` union (`manifest` | `url`), `productImageSmart()` and `projectImageSmart()` that fall back to plain URL when the image isn't in the local manifest (i.e. admin-uploaded to Storage)
+- `components/ui/smart-image.tsx` — wrapper that picks `<ProductImage>` (full `<picture>` with responsive variants) for manifest images vs `next/image` for Storage URLs
+
+**Admin CRUD pages** (all under `app/admin/(authed)/`)
+- `products/` — list (table with category filter, search, image thumbs), `new/` (create form), `[slug]/` (edit form with gallery + delete)
+- `projects/` — list, `new/`, `[slug]/` (same pattern, no specs)
+- `site-settings/` — single page rendering every settings row as form rows (EN + AR side-by-side), bulk Save
+
+**Admin components** (`components/admin/`)
+- `product-form.tsx` — bilingual fields + SpecsEditor + GalleryEditor + DeleteButton, dual-mode (new/edit)
+- `project-form.tsx` — same pattern, no specs
+- `specs-editor.tsx` — repeating-row form for ProductSpec[]: 4 inputs per row + remove button + "Add spec" at bottom + `pruneEmptySpecs()` helper
+- `gallery-editor.tsx` — drop zone + thumb tiles with native HTML5 drag-reorder + per-image actions (set primary, delete) + upload progress
+- `image-thumb.tsx` — reusable thumbnail tile (3 sizes) using `next/image`
+- `delete-button.tsx` — destructive button + confirm dialog wrapper
+- `sidebar-nav.tsx` — added Products, Projects, Site settings links
+
+**Admin mutations + actions**
+- `lib/supabase/admin-mutations.ts` — typed: `createProduct/updateProduct/deleteProduct/createProject/updateProject/deleteProject/updateSiteSettings`. Delete operations also clean up Storage objects via `deleteFilesByUrl`.
+- `app/admin/actions.ts` — extended with 11 new server actions: 3 product CRUD + 3 project CRUD + 1 site-settings + 1 upload + 1 delete-image + the existing 3 (signOut/updateLeadStatus/updateBooking). All re-check auth + revalidatePath on both admin + public routes.
+
+**Admin queries**
+- `lib/supabase/admin-queries.ts` — added `getAllProductsAdmin`, `getProductBySlugAdmin`, `getAllProjectsAdmin`, `getProjectBySlugAdmin`, `getAllSiteSettingsAdmin` (cookie-based client carries admin session → RLS admin policy allows full read incl. inactive/unpublished rows)
+
+**Type + codebase cleanup**
+- `lib/supabase/database.types.ts` — added `ProductSpec` interface + `specs: ProductSpec[]` to ProductRow
+- `lib/product-specs.ts` — **deleted** (specs now live in DB)
+- `app/[locale]/products/[category]/[slug]/page.tsx` — reads `product.specs` from DB instead of `productSpecsBySlug(slug)`
+
+### Test Results
+- ✅ **TypeScript**: clean (exit 0)
+- ✅ **ESLint**: clean (0 errors, 0 warnings)
+- ✅ **Vitest unit tests**: 40/40 passing (no regressions)
+- ✅ **Production build**: 7 new admin routes (5 dynamic + 1 dynamic-param + 1 static `/admin/login` unchanged) added to the 11 public + 4 existing admin routes from Prompt 9a
+- ✅ **Playwright E2E (mobile)**: full suite still passes after the refactor
+
+### Bug fixes during this prompt
+1. **`Dialog` exports no `DialogFooter`** — inlined a `<div className="flex justify-end gap-2 pt-2">` in `delete-button.tsx`
+2. **React hook lint trigger on `useLongInput()`** — renamed to `isLongFieldKey()` so it's not mistaken for a hook
+3. **Unused `ProductSpec` import** in `app/admin/actions.ts` — removed
+
+### Pre-flight (user-side, already completed during prompt)
+- ⏳ User to paste `supabase/migrations/0002_add_product_specs.sql` → verified specs column populated for 8 products
+- ⏳ User to paste `supabase/migrations/0003_storage_rls.sql` → verified 4 policies under storage > objects
+
+### Known issues / deferred
+- ❌ Image cropping / resize UI — admins must pre-size uploads (Phase 2)
+- ❌ Bulk import (CSV) — Phase 2
+- ❌ Per-image alt text — uses product name everywhere (Phase 2)
+- ❌ Versioning / audit log — Phase 2
+- ❌ Real RBAC (multiple admin roles) — Phase 2
+- ❌ Lead export (CSV) — Phase 2
+- ⚠ Admin-uploaded images render via `next/image` (counts against optimization quota); seeded products keep the local `<picture>` with responsive variants. When the client provides real product photography, we either keep them as local manifest assets via the existing `pnpm images` script OR move everything to Storage + accept the optimization quota cost.
+
+### Security review
+- ✅ Storage RLS in place — anonymous can read but never write
+- ✅ All 11 new server actions check `auth.getUser()` before any mutation
+- ✅ Upload action validates MIME + file size server-side (defense in depth — client also validates)
+- ✅ Random-UUID filenames prevent path traversal / overwrites
+- ✅ `lib/supabase/admin-mutations.ts` is `"server-only"`
+- ✅ Delete confirmations require explicit "Delete permanently" click
+- ✅ Zod validation on all CRUD inputs (slug format enforced as url-safe)
+- ✅ revalidatePath called for both admin AND public paths so public site updates immediately
+
+### Commit
+- Branch: `main`
+- Message: `feat(admin-crud): products, projects, site-settings CRUD with Storage gallery (9b)`
+
+---
+
 ## Prompt 9a — Admin Dashboard (Auth + Read-only + Status Updates) ✅
 
 **Date**: 2026-06-08

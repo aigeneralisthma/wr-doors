@@ -19,6 +19,9 @@ import type {
   LeadStatus,
   LeadSource,
   Locale,
+  ProductRow,
+  ProjectRow,
+  SiteSettingRow,
   TechnicianRow,
 } from "./database.types";
 
@@ -86,6 +89,78 @@ export async function getBookingsAdmin(
   if (error) throw new Error(`getBookingsAdmin failed: ${error.message}`);
   return data ?? [];
 }
+
+// =============================================================================
+// PRODUCTS (admin — sees all, including inactive)
+// =============================================================================
+
+export async function getAllProductsAdmin(): Promise<ProductRow[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("products")
+    .select("*")
+    .order("created_at", { ascending: false });
+  if (error) throw new Error(`getAllProductsAdmin failed: ${error.message}`);
+  return data ?? [];
+}
+
+export async function getProductBySlugAdmin(
+  slug: string,
+): Promise<ProductRow | null> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("products")
+    .select("*")
+    .eq("slug", slug)
+    .maybeSingle();
+  if (error) throw new Error(`getProductBySlugAdmin failed: ${error.message}`);
+  return data;
+}
+
+// =============================================================================
+// PROJECTS (admin — sees all, including unpublished)
+// =============================================================================
+
+export async function getAllProjectsAdmin(): Promise<ProjectRow[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("projects")
+    .select("*")
+    .order("display_order", { ascending: true });
+  if (error) throw new Error(`getAllProjectsAdmin failed: ${error.message}`);
+  return data ?? [];
+}
+
+export async function getProjectBySlugAdmin(
+  slug: string,
+): Promise<ProjectRow | null> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("projects")
+    .select("*")
+    .eq("slug", slug)
+    .maybeSingle();
+  if (error) throw new Error(`getProjectBySlugAdmin failed: ${error.message}`);
+  return data;
+}
+
+// =============================================================================
+// SITE SETTINGS (admin)
+// =============================================================================
+
+export async function getAllSiteSettingsAdmin(): Promise<SiteSettingRow[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("site_settings")
+    .select("*")
+    .order("key", { ascending: true });
+  if (error) throw new Error(`getAllSiteSettingsAdmin failed: ${error.message}`);
+  return data ?? [];
+}
+
+// =============================================================================
+// TECHNICIANS
+// =============================================================================
 
 export async function getTechniciansAdmin(): Promise<TechnicianRow[]> {
   const supabase = await createClient();

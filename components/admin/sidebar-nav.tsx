@@ -4,9 +4,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Calendar,
+  Image as ImageIcon,
   LayoutDashboard,
   LogOut,
   Mail,
+  Package,
+  Settings,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -21,6 +24,9 @@ const NAV_ITEMS = [
   { href: "/admin/dashboard", label: "Dashboard", Icon: LayoutDashboard },
   { href: "/admin/leads", label: "Leads", Icon: Mail },
   { href: "/admin/bookings", label: "Bookings", Icon: Calendar },
+  { href: "/admin/products", label: "Products", Icon: Package },
+  { href: "/admin/projects", label: "Projects", Icon: ImageIcon },
+  { href: "/admin/site-settings", label: "Site settings", Icon: Settings },
 ] as const;
 
 /**

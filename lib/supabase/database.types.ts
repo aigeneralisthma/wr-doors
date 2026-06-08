@@ -45,6 +45,14 @@ export type TechnicianStatus = "active" | "inactive" | "on_leave";
 
 export type SiteSettingType = "text" | "image" | "video" | "json";
 
+/** Bilingual spec row stored as JSONB array on products.specs */
+export interface ProductSpec {
+  label_en: string;
+  label_ar: string;
+  value_en: string;
+  value_ar: string;
+}
+
 // ── Database type for Supabase client generic ──────────────────────────────
 
 export interface Database {
@@ -63,6 +71,7 @@ export interface Database {
           description_ar: string;
           price_from_aed: number | null;
           images: string[];
+          specs: ProductSpec[];
           is_featured: boolean;
           is_active: boolean;
           created_at: string;
@@ -80,6 +89,7 @@ export interface Database {
           description_ar: string;
           price_from_aed?: number | null;
           images?: string[];
+          specs?: ProductSpec[];
           is_featured?: boolean;
           is_active?: boolean;
           created_at?: string;
@@ -96,6 +106,7 @@ export interface Database {
           description_ar?: string;
           price_from_aed?: number | null;
           images?: string[];
+          specs?: ProductSpec[];
           is_featured?: boolean;
           is_active?: boolean;
         };

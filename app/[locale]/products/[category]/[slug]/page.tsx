@@ -8,7 +8,6 @@ import {
   PRODUCT_CATEGORY_SLUGS,
   type ProductCategorySlug,
 } from "@/lib/products";
-import { productSpecsBySlug } from "@/lib/product-specs";
 import {
   getProductBySlug,
   getProducts,
@@ -96,7 +95,7 @@ export default async function ProductDetailPage({
   const image = productImage(product);
   if (!image) notFound(); // can't render without resolvable image
 
-  const specs = productSpecsBySlug(slug);
+  const specs = product.specs ?? [];
 
   const t = await getTranslations({ locale, namespace: "products" });
   const tCat = await getTranslations({ locale, namespace: "products.categories" });
