@@ -73,13 +73,91 @@ Bottom-left of the sidebar has a **Sign out** button. After clicking, you're ret
 
 ---
 
-## What's NOT yet here (coming in 9b)
+## Content management (Prompt 9b)
 
-- `/admin/products` — CRUD for the catalog (currently you'd edit via Supabase Dashboard → Table Editor → products)
-- `/admin/projects` — CRUD for the portfolio
-- `/admin/site-settings` — mini CMS for hero text, contact info, hours (`site_settings` table)
-- Image upload UI to Supabase Storage (you'd upload via Dashboard → Storage for now)
-- `0002_add_product_specs.sql` migration to move specs from `lib/product-specs.ts` into the DB
+These pages let you manage everything customers see, without ever opening Supabase:
+
+### `/admin/products`
+- Table of all products, filterable by category, with thumbnails
+- **New** button → create a product (slug, name + description in EN/AR, category, price-from, specs JSON, gallery images)
+- Click any row → edit, including upload/replace/reorder gallery images (stored in Supabase Storage under `product-images/`)
+- Toggle `is_active` to publish/hide
+- Soft-delete supported
+
+### `/admin/projects`
+- Same shape as products: list, create, edit
+- Upload hero + gallery to `project-images/` bucket
+- Toggle `is_published`
+
+### `/admin/site-settings`
+- Single-form mini-CMS: hero headline, eyebrow, contact info, business hours, social links
+- All bilingual (EN/AR side-by-side)
+- Saves to `site_settings` table (1 row, `singleton = true` constraint)
+- Public pages read these via ISR — changes propagate within 60s
+
+> Specs are now stored in `products.specs` JSONB column (migration `0002`), not in code. Storage RLS (migration `0003`) ensures only signed-in admins can upload/replace/delete; public reads are open.
+
+---
+
+## Deploying to production (Prompt 10)
+
+The app is wired for one-click Vercel deployment with full SEO, analytics, and security headers.
+
+### 1. Vercel project setup
+1. Go to **vercel.com → Add New → Project**
+2. Import `aigeneralisthma/wr-doors` from GitHub
+3. Framework Preset: **Next.js** (auto-detected)
+4. Root Directory: `./` (leave default)
+5. Don't deploy yet — click **Environment Variables** first
+
+### 2. Required environment variables
+Paste these into Vercel's env-var UI (apply to Production + Preview + Development):
+
+| Variable | Value | Notes |
+|----------|-------|-------|
+| `NEXT_PUBLIC_SITE_URL` | `https://wrdoors.vercel.app` | Override later if/when you swap to a custom domain |
+| `NEXT_PUBLIC_SUPABASE_URL` | from Supabase dashboard | Project Settings → API |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | from Supabase dashboard | Same page, "anon public" key |
+| `SUPABASE_SERVICE_ROLE_KEY` | from Supabase dashboard | **Server-only**, never expose. Same page, "service_role" key |
+| `RESEND_API_KEY` | from Resend dashboard | re_… token |
+| `RESEND_FROM_EMAIL` | e.g. `noreply@wrdoors.com` | Must match a verified Resend domain. Use `onboarding@resend.dev` for Phase-1 test deploys |
+| `RESEND_ADMIN_EMAIL` | `wahatalruman36@gmail.com` | Where new-lead + new-booking notifications go |
+
+Optional but recommended:
+| Variable | Value | Notes |
+|----------|-------|-------|
+| `NEXT_PUBLIC_GOOGLE_MAPS_KEY` | from Google Cloud Console | If/when you wire a real map embed on the contact page |
+
+### 3. Deploy
+Click **Deploy**. First build runs `pnpm build` (~2 min). When green, the prod URL appears at the top of the project.
+
+### 4. Verify production
+After deploy:
+
+| Check | URL | Expected |
+|-------|-----|----------|
+| Homepage EN | `/en` | Loads, hero animates, no console errors |
+| Homepage AR | `/ar` | Renders RTL, Arabic text correct |
+| Sitemap | `/sitemap.xml` | XML with hreflang en/ar pairs on every URL |
+| Robots | `/robots.txt` | Allow `/`, disallow `/admin/` + `/api/`, sitemap link |
+| OG image | `/en/opengraph-image` | 1200×630 PNG, navy background, gold accent |
+| Admin login | `/admin/login` | Renders; sign in works with your Supabase admin user |
+| CSP header | DevTools → Network → any request → Response Headers | `Content-Security-Policy` present, includes Spline + Supabase + Resend allowlists |
+| Lighthouse | DevTools → Lighthouse → Mobile | Target 90+ Performance, 100 SEO, 100 Best Practices |
+
+### 5. Analytics
+- **Vercel Analytics** is auto-enabled (free tier: ~2.5k events/mo). View at `https://vercel.com/<your-account>/wr-doors/analytics`. Tracks page views, top routes, locale split, referrers — no cookies, no PII.
+- **Speed Insights** also auto-enabled. View at the Speed Insights tab. Tracks real-user LCP / FID / CLS by route.
+
+### 6. Custom domain (Phase 2)
+When `wrdoors.com` is ready:
+1. Vercel → Project → **Settings → Domains → Add `wrdoors.com`**
+2. Add the displayed A/CNAME records at your registrar
+3. Once verified, update Vercel env `NEXT_PUBLIC_SITE_URL` to `https://wrdoors.com`
+4. Redeploy
+5. (Optional) Add `doda.com` as a redirect-only domain pointing to `wrdoors.com`
+
+> The base URL is read from `NEXT_PUBLIC_SITE_URL` everywhere (sitemap, robots, JSON-LD, OG tags). Updating that one env var + redeploying is all you need for a domain swap.
 
 ---
 

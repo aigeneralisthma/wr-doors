@@ -22,6 +22,7 @@ import { GoldAccent } from "@/components/brand/gold-accent";
 import { TripleGuardPanel } from "@/components/products/triple-guard-panel";
 import { RelatedProducts } from "@/components/products/related-products";
 import { QuoteModal } from "@/components/products/quote-modal";
+import { ProductJsonLd } from "@/components/seo/product-json-ld";
 
 /* ── ISR: revalidate from Supabase every 60s ──────────────────────────── */
 export const revalidate = 60;
@@ -139,6 +140,9 @@ export default async function ProductDetailPage({
 
   return (
     <main>
+      {/* Product rich-result schema — picked up by Google product cards */}
+      <ProductJsonLd product={product} locale={locale === "ar" ? "ar" : "en"} />
+
       {/* ── Product hero ── */}
       <section className="py-10 md:py-16">
         <Container>

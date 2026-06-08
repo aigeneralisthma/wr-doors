@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Analytics } from "@vercel/analytics/next";
 
 import "../globals.css";
 
@@ -29,6 +30,8 @@ export default function AdminRootLayout({
     <html lang="en" className="h-full antialiased">
       <body className="min-h-full bg-background text-foreground font-sans">
         {children}
+        {/* Track admin pageviews too — helps measure operator usage patterns */}
+        <Analytics />
       </body>
     </html>
   );

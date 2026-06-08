@@ -18,10 +18,46 @@ const nextConfig: NextConfig = {
    * - Strict-Transport-Security: forces HTTPS once seen (Vercel terminates TLS)
    */
   async headers() {
+    // Content Security Policy — strict allow-list per Prompt 10 plan.
+    //
+    // Compromises (documented):
+    //   - 'unsafe-inline' on script-src: Next.js + Spline runtime inject
+    //     inline scripts. Nonce-based CSP is more secure but adds boilerplate
+    //     to every Server Component; defer to Phase 2 if SOC2 demands it.
+    //   - 'unsafe-eval' on script-src: Spline runtime uses eval-like patterns;
+    //     Next.js HMR needs it in dev.
+    //   - 'unsafe-inline' on style-src: Tailwind utility classes generate
+    //     inline styles; next/image placeholder uses inline style attr.
+    //
+    // Each external host below is whitelisted intentionally:
+    //   - prod.spline.design / my.spline.design — homepage 3D hero
+    //   - va.vercel-scripts.com — Vercel Analytics
+    //   - *.supabase.co — auth, queries, Storage CDN
+    //   - api.resend.com — server-side email send (from server actions)
+    //   - www.google.com / maps.gstatic.com / maps.googleapis.com — contact page map
+    //   - fonts.googleapis.com / fonts.gstatic.com — next/font Google Fonts loader
+    const csp = [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://prod.spline.design https://va.vercel-scripts.com",
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+      "font-src 'self' https://fonts.gstatic.com",
+      "img-src 'self' data: blob: https://*.supabase.co https://maps.gstatic.com https://maps.googleapis.com https://prod.spline.design",
+      "frame-src https://www.google.com https://my.spline.design",
+      "connect-src 'self' https://*.supabase.co https://api.resend.com https://prod.spline.design https://vitals.vercel-insights.com",
+      "worker-src 'self' blob:",
+      "base-uri 'self'",
+      "form-action 'self'",
+      "frame-ancestors 'self'",
+    ].join("; ");
+
     return [
       {
         source: "/:path*",
         headers: [
+          {
+            key: "Content-Security-Policy",
+            value: csp,
+          },
           {
             key: "X-Frame-Options",
             value: "SAMEORIGIN",

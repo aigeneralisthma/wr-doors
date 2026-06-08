@@ -3,6 +3,8 @@ import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { Source_Serif_4, IBM_Plex_Mono, IBM_Plex_Sans_Arabic } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 import { routing, localeDirection, type Locale } from "@/i18n/routing";
 import { BRAND } from "@/lib/constants";
@@ -144,6 +146,9 @@ export default async function LocaleLayout({
           <Footer />
           <WhatsAppButton />
         </NextIntlClientProvider>
+        {/* Privacy-friendly analytics — no cookies, no PII. Auto-enabled on Vercel. */}
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );

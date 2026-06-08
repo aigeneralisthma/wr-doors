@@ -8,6 +8,7 @@ import { WhyUsSection } from "@/components/sections/why-us-stats";
 import { ServicesSection } from "@/components/sections/services-overview";
 import { TestimonialsSection } from "@/components/sections/testimonials";
 import { FinalCtaSection } from "@/components/sections/final-cta";
+import { LocalBusinessJsonLd } from "@/components/seo/local-business-json-ld";
 
 /**
  * Homepage — full conversion-focused page composition.
@@ -41,6 +42,9 @@ export default async function HomePage({
 
   return (
     <main className="flex-1">
+      {/* LocalBusiness rich-result schema — picked up by Google + Bing */}
+      <LocalBusinessJsonLd locale={locale === "ar" ? "ar" : "en"} />
+
       <HeroSection locale={locale} />
       <USPSection />
       <ProductCategoriesSection locale={locale} />

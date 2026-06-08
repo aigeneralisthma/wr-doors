@@ -5,6 +5,84 @@
 
 ---
 
+## Prompt 10 — SEO + Performance + Vercel Deployment Prep ✅
+
+**Date**: 2026-06-08
+**Model used**: claude-opus-4-7 (continued from a partial Sonnet run that left uncommitted SEO scaffolding in the tree)
+**Status**: Complete — local verification green. Vercel deploy itself is a user-side action (account login + GitHub import).
+
+### Goal
+Ship every SEO + performance + security signal a search engine, social platform, or browser would look for. Get the project to "click deploy on Vercel and walk away" state.
+
+### Deliverables
+
+**Discovery + crawlability**
+- `app/sitemap.ts` — Next.js file-route sitemap. One entry per (locale × route): 8 static routes + 4 category pages + N product pages, both `/en` and `/ar`. Every entry declares its hreflang pair via `alternates.languages`. Dynamic slugs fetched from Supabase at build via the cookieless `createStaticClient`.
+- `app/robots.ts` — allow all, disallow `/admin/`, `/api/`, link to sitemap.xml. Keeps admin login URL off the index.
+
+**Structured data (rich results)**
+- `components/seo/local-business-json-ld.tsx` — `HomeAndConstructionBusiness` schema (most specific subtype for doors + installation). Includes address (Dubai), geo coords, hours (Sun–Thu 9–18), publisher = DODA. Wired into homepage for both locales — Arabic variant includes `alternateName: "وَر دورز"`.
+- `components/seo/product-json-ld.tsx` — `Product` schema with brand, manufacturer, image (absolute URLs), and conditional Offer when `price_from_aed` is set. Specs flow to `additionalProperty[]`. Wired into product detail page.
+
+**Open Graph + Twitter**
+- `app/[locale]/opengraph-image.tsx` — dynamic 1200×630 PNG via Next.js `ImageResponse` (edge runtime). Brand-aware: navy gradient background, gold accent bar, locale-aware heading + tagline + DODA endorsement, monospace URL footer. No static PNG to ship or maintain. Twitter cards auto-fall-back to this image because we use `summary_large_image`.
+- Base hreflang + OG site name + Twitter card metadata already lived in `app/[locale]/layout.tsx` from earlier prompts; per-route `generateMetadata` already covers /products, /products/[cat], /products/[cat]/[slug], /services, /book, /quote, /projects, /about, /contact.
+
+**Security headers (CSP)**
+- `next.config.ts` — strict Content-Security-Policy added on top of the existing X-Frame, HSTS, Referrer, X-Content-Type-Options, Permissions-Policy. Allow-list per service: prod.spline.design (hero 3D), va.vercel-scripts.com (analytics), *.supabase.co (auth + DB + Storage CDN), api.resend.com (email), www.google.com + maps.* (contact map), fonts.googleapis.com + fonts.gstatic.com (next/font Google Fonts). Compromises documented in code: `'unsafe-inline'` on style-src (Tailwind utilities + next/image placeholder), `'unsafe-inline' 'unsafe-eval'` on script-src (Next.js + Spline runtime). Nonce-based CSP deferred to Phase 2 if SOC2/strict mode is later required.
+
+**Analytics + Web Vitals (RUM)**
+- `@vercel/analytics` + `@vercel/speed-insights` installed and wired into both `app/[locale]/layout.tsx` (public) and `app/admin/layout.tsx` (admin operator usage). Zero-cookie, no PII — auto-enabled on Vercel.
+
+**Wiring**
+- `app/[locale]/page.tsx` → `<LocalBusinessJsonLd>`
+- `app/[locale]/products/[category]/[slug]/page.tsx` → `<ProductJsonLd>`
+- Both layouts → `<Analytics />` + `<SpeedInsights />`
+
+**Documentation**
+- `ADMIN_GUIDE.md` — replaced the stale "coming in 9b" section with a real "Content management" section, then added a full "Deploying to production (Prompt 10)" section: Vercel project setup, required env vars (table), post-deploy verification checklist, Vercel Analytics + Speed Insights pointer, Phase-2 custom-domain swap procedure.
+
+### Test Results
+- ✅ **TypeScript**: clean (`tsc --noEmit` exit 0)
+- ✅ **ESLint**: clean (0 errors, 0 warnings after pruning two stale `eslint-disable-next-line react/no-danger` directives that the project's config doesn't trigger)
+- ✅ **Vitest unit tests**: 40/40 passing (no regressions)
+- ✅ **Production build** (`next build`): 54 static pages generated, 11 public routes + 11 admin routes intact; new artifacts: `/robots.txt` (Static), `/sitemap.xml` (Static), `/-/opengraph-image` (Dynamic edge runtime). Public SSG routes still revalidate every 60s.
+- ✅ **Local smoke (next start :3010)**:
+  - `/en` HTTP 200, CSP + X-Frame + HSTS + Referrer + X-Content-Type-Options + Permissions-Policy all present
+  - `/sitemap.xml` valid XML with `<xhtml:link rel="alternate" hreflang="..." />` pairs on every URL
+  - `/robots.txt` correct (allow /, disallow /admin/ + /api/, sitemap link)
+  - `/en` JSON-LD: `HomeAndConstructionBusiness` rendered with full address + geo + hours
+  - `/ar` JSON-LD: includes `alternateName: "وَر دورز"`; `og:locale` = `ar_AE`
+  - `/en/products/wpc-doors/modern-wpc-interior` JSON-LD: `Product` rendered with absolute image URLs, brand, manufacturer, category
+  - `/en/opengraph-image`: 89 KB PNG, 1200×630, content-type `image/png`
+  - `/admin/login`: 200, same CSP/security headers attached (`/:path*` source matches every route)
+
+### Security review
+- ✅ CSP strict allow-list — no wildcard `*` outside `data:` / `blob:` for img-src and Supabase subdomain pattern
+- ✅ HSTS preload-eligible (max-age 2 years, includeSubDomains, preload)
+- ✅ Robots disallows `/admin/` and `/api/` — admin login URL stays out of the index
+- ✅ JSON-LD output uses `JSON.stringify` (escapes `<` and other unsafe characters automatically) before going through `dangerouslySetInnerHTML`
+- ✅ No new server actions or mutations introduced — Prompt 10 is read-only/metadata-only on top of Prompt 9b
+- ⚠ Documented compromises in CSP: `'unsafe-inline'` + `'unsafe-eval'` for Spline + Next.js runtime; flagged for Phase 2 nonce-based rework if compliance ever demands it
+
+### Pre-flight (user-side, NOT done in this prompt — Vercel deploy itself)
+- ⏳ User creates a Vercel project (import `aigeneralisthma/wr-doors`), pastes env vars per the table in ADMIN_GUIDE.md, clicks Deploy
+- ⏳ User runs the post-deploy verification checklist in ADMIN_GUIDE.md (sitemap/robots/OG/CSP/admin login/Lighthouse)
+- ⏳ Lighthouse Mobile 90+ confirmation runs against the live Vercel URL (not localhost — Spline + Vercel edge caching skew local scores)
+
+### Known issues / deferred
+- ❌ Static favicon family (apple-touch-icon, 32×32, 192×192, manifest.webmanifest) — `favicon.ico` exists; richer icon set deferred to Phase 2 alongside branded social PNGs (1200×600 LinkedIn, 1080×1080 Instagram)
+- ❌ Nonce-based CSP — deferred to Phase 2 if needed
+- ❌ Site verification meta tags (Google Search Console, Bing Webmaster) — added after the live URL is known
+- ❌ Custom domain (`wrdoors.com`) — Phase 2 per locked decision
+- ⚠ Next.js 16 warns: `middleware` file convention deprecated → use `proxy` instead. Not blocking; Phase 2 sweep alongside other v16 cleanup
+
+### Commit
+- Branch: `main`
+- Message: `feat(seo): sitemap + robots + JSON-LD + CSP + analytics + dynamic OG image (10)`
+
+---
+
 ## Prompt 9b — Admin CRUD (Products + Projects + Site Settings + Storage) ✅
 
 **Date**: 2026-06-08
