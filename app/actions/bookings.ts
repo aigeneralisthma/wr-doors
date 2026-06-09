@@ -18,6 +18,7 @@ import {
   bookingContactSchema,
 } from "@/lib/schemas/booking";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
+import { getContactInfo } from "@/lib/site-config";
 
 import AdminBookingAlert from "@/emails/admin-booking-alert";
 import CustomerBookingConfirmation from "@/emails/customer-booking-confirmation";
@@ -122,9 +123,10 @@ export async function submitBooking({
     return { ok: false, error: genericError(locale) };
   }
 
-  // 5. Fire-and-forget emails
+  // 5. Fire-and-forget emails — fetch contact info once + thread to templates
   const localizedService = serviceLabel(input.service, locale);
   const englishService = serviceLabel(input.service, "en"); // admin always EN
+  const contact = await getContactInfo(locale);
   void Promise.allSettled([
     sendAdminBookingAlert(
       createElement(AdminBookingAlert, {
@@ -137,6 +139,7 @@ export async function submitBooking({
         preferredDate: input.date,
         notes: input.notes || null,
         customerLocale: locale,
+        contact,
       }),
       { customerName: input.name, service: englishService },
     ),
@@ -150,6 +153,7 @@ export async function submitBooking({
             preferredDate: input.date,
             area: input.area,
             locale,
+            contact,
           }),
           locale,
         )

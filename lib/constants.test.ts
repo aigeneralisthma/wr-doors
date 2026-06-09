@@ -6,8 +6,9 @@ describe("BRAND constants", () => {
     expect(BRAND.name).toBe("WR Doors");
   });
 
-  it("exposes DODA as the platform co-brand", () => {
-    expect(BRAND.platform).toBe("DODA");
+  it("exposes the trademark line in both languages", () => {
+    expect(BRAND.endorsement).toContain("AI DODO");
+    expect(BRAND.endorsementAr).toContain("AI DODO");
   });
 
   it("exposes the legal entity (English + Arabic)", () => {
@@ -27,8 +28,8 @@ describe("CONTACT constants", () => {
     expect(digitsOnly).toBe(CONTACT.phoneE164);
   });
 
-  it("matches the email from the client flyer", () => {
-    expect(CONTACT.email).toBe("wahatalruman36@gmail.com");
+  it("matches the configured admin contact email", () => {
+    expect(CONTACT.email).toBe("aigeneralist.hma@gmail.com");
   });
 });
 

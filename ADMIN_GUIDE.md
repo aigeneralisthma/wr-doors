@@ -73,6 +73,56 @@ Bottom-left of the sidebar has a **Sign out** button. After clicking, you're ret
 
 ---
 
+## Managing admin users
+
+> **Where users live**: Supabase Dashboard, NOT inside this admin UI. Any account in **Supabase → Authentication → Users** can sign in here and gets full admin access. There are no role tiers — every admin has the same permissions.
+
+### Quick reference
+
+| Need | Where to click |
+|------|----------------|
+| **See who has admin access** | [Supabase Dashboard](https://supabase.com/dashboard) → your project → Authentication → Users |
+| **Add a new admin** | Same page → **Add user → Create new user** → enter email + strong password → tick **Auto Confirm User: ON** → Save |
+| **Reset a forgotten password** | Same page → click the user → **Send password recovery** (or set a new password directly) |
+| **Temporarily disable an admin** | Same page → click user → **Ban user** (preserves credentials, blocks login) |
+| **Remove an admin permanently** | Same page → click user → **Delete user** (kills any active session immediately) |
+| **Enable 2FA for stronger security** | Project Settings → Authentication → **Multi-Factor Authentication** |
+
+### Common workflows
+
+**🆕 Adding a new admin (giving someone access)**
+1. Supabase → Authentication → Users → **Add user → Create new user**
+2. Email + strong password + **Auto Confirm User: ON** → Save
+3. Share credentials through a secure channel (1Password, Signal, in-person — **never** plain email/SMS)
+4. They go to `/admin/login`, sign in → full access immediately
+
+**🔄 Transferring admin to someone else (handover)**
+1. **First**, add the new admin (above) and confirm they can log in
+2. Have them rotate their password to one only they know (use **Send password recovery** or self-reset)
+3. **Then** delete the old admin: click old user → **Delete user**
+4. Old credentials are dead — handover complete
+
+**🔒 Suspending an admin (vacation, leave, etc.)**
+1. Supabase → Authentication → click the user → **Ban user** → pick duration
+2. They can't log in until unbanned — credentials stay intact
+
+**🚪 Removing an admin (fired, role change)**
+1. Click the user → **Delete user**
+2. Any active session is invalidated within seconds
+
+### Security notes
+
+- The admin login URL (`/admin/login`) is unlinked from the public site + disallowed in `robots.txt` — bots won't find it
+- Supabase Auth has built-in brute-force protection (5 attempts per IP per 5 min)
+- Every admin should use a unique strong password (ideally from a password manager)
+- For production: turn on **MFA** in Supabase Authentication settings — requires every admin to scan a TOTP code on their phone at login
+
+### Why no in-site user-management UI?
+
+Intentional. Supabase's Authentication page is a hardened, audited UI with built-in MFA prompts, password-strength meters, and rate-limit warnings. Duplicating it inside `/admin/users` would mean re-implementing those guardrails and giving the site more code to maintain. Bookmark the Supabase Auth page alongside `/admin/login` and you're set.
+
+---
+
 ## Content management (Prompt 9b)
 
 These pages let you manage everything customers see, without ever opening Supabase:
@@ -120,8 +170,13 @@ Paste these into Vercel's env-var UI (apply to Production + Preview + Developmen
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | from Supabase dashboard | Same page, "anon public" key |
 | `SUPABASE_SERVICE_ROLE_KEY` | from Supabase dashboard | **Server-only**, never expose. Same page, "service_role" key |
 | `RESEND_API_KEY` | from Resend dashboard | re_… token |
-| `RESEND_FROM_EMAIL` | e.g. `noreply@wrdoors.com` | Must match a verified Resend domain. Use `onboarding@resend.dev` for Phase-1 test deploys |
-| `RESEND_ADMIN_EMAIL` | `wahatalruman36@gmail.com` | Where new-lead + new-booking notifications go |
+| `RESEND_FROM_EMAIL` | e.g. `WR Doors <noreply@wrdoors.com>` | Must match a verified Resend domain. Use `WR Doors <onboarding@resend.dev>` for Phase-1 test deploys |
+| `ADMIN_NOTIFICATION_EMAIL` | `wahatalruman36@gmail.com` | Where new-lead + new-booking notifications go |
+
+Optional, but recommended for Phase 1:
+| Variable | Value | Notes |
+|----------|-------|-------|
+| `NEXT_PUBLIC_SPLINE_SCENE_URL` | from your Spline account | Homepage 3D hero scene URL. Falls back to a placeholder if unset. |
 
 Optional but recommended:
 | Variable | Value | Notes |

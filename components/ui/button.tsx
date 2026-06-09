@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
  *
  * Variants map to brand semantics:
  *   - `default`     → gold (WR Doors primary CTA)
- *   - `secondary`   → navy (DODA platform CTA)
+ *   - `secondary`   → navy (secondary CTA)
  *   - `outline`     → bordered navy (secondary action)
  *   - `ghost`       → transparent (nav, low emphasis)
  *   - `link`        → underlined link styling

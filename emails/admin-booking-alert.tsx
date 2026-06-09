@@ -4,7 +4,7 @@
  */
 import { Link, Section, Text } from "@react-email/components";
 
-import { BRAND, EmailLayout, Heading } from "./_layout";
+import { BRAND, EmailLayout, Heading, type EmailContact } from "./_layout";
 
 interface AdminBookingAlertProps {
   bookingId: string;
@@ -16,6 +16,8 @@ interface AdminBookingAlertProps {
   preferredDate: string; // YYYY-MM-DD
   notes?: string | null;
   customerLocale: "en" | "ar";
+  /** Admin-editable contact info — appears in the email footer */
+  contact?: EmailContact;
 }
 
 export default function AdminBookingAlert({
@@ -28,6 +30,7 @@ export default function AdminBookingAlert({
   preferredDate,
   notes,
   customerLocale,
+  contact,
 }: AdminBookingAlertProps) {
   const serviceLabel: Record<typeof service, string> = {
     consultation: "Free Consultation",
@@ -46,7 +49,7 @@ export default function AdminBookingAlert({
   const localeLabel = customerLocale === "ar" ? "Arabic 🇸🇦" : "English 🇬🇧";
 
   return (
-    <EmailLayout preview={`New booking: ${serviceLabel[service]} — ${customerName}`}>
+    <EmailLayout preview={`New booking: ${serviceLabel[service]} — ${customerName}`} contact={contact}>
       <Heading>New booking: {customerName}</Heading>
       <Text
         style={{

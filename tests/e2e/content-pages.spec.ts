@@ -5,7 +5,7 @@ import { test, expect } from "@playwright/test";
  *
  * Covers:
  *   - /projects  (portfolio grid + client-side category filter)
- *   - /about     (company story + DODA Platform section + legal disclosure)
+ *   - /about     (company story + factory + values + legal disclosure)
  *   - /contact   (contact form + info panel + Google Maps iframe)
  *
  * All tests run across mobile, tablet, desktop viewports.
@@ -165,11 +165,6 @@ test.describe("/about — company story", () => {
       page.getByRole("heading", { name: /Built locally, designed/i }),
     ).toBeVisible();
 
-    // DODA Platform section
-    await expect(
-      page.getByRole("heading", { name: /Powered by DODA/i }),
-    ).toBeVisible();
-
     // Factory section
     await expect(
       page.getByRole("heading", { name: /Factory & Quality Assurance/i }),
@@ -178,24 +173,6 @@ test.describe("/about — company story", () => {
     // Values section
     await expect(
       page.getByRole("heading", { name: /Quality, service, and a 10-year promise/i }),
-    ).toBeVisible();
-  });
-
-  test("DODA Platform section shows 3 benefit cards", async ({ page }) => {
-    await page.goto("/en/about");
-
-    // Eyebrow label
-    await expect(page.getByText("The platform", { exact: true })).toBeVisible();
-
-    // 3 DODA benefits
-    await expect(
-      page.getByRole("heading", { name: /Bilingual by design/i }),
-    ).toBeVisible();
-    await expect(
-      page.getByRole("heading", { name: /One platform, many brands/i }),
-    ).toBeVisible();
-    await expect(
-      page.getByRole("heading", { name: /Customer-first operations/i }),
     ).toBeVisible();
   });
 
@@ -241,13 +218,6 @@ test.describe("/about — company story", () => {
     // Match "أبواب فاخرة" — stable across copy variations
     await expect(
       page.getByRole("heading", { name: /أبواب فاخرة/, level: 1 }),
-    ).toBeVisible();
-
-    // DODA section heading — the Arabic copy keeps "DODA" in Latin script
-    // (matches our brand spec), so we look for the Latin token inside an
-    // Arabic-RTL heading rendered on /ar.
-    await expect(
-      page.getByRole("heading", { name: /DODA/ }).first(),
     ).toBeVisible();
   });
 
@@ -298,7 +268,7 @@ test.describe("/contact — form + info panel + map", () => {
     // Aside section
     const aside = page.locator("aside");
     await expect(aside.getByText(/Other ways to reach us/i)).toBeVisible();
-    await expect(aside.getByText(/Powered by DODA/i)).toBeVisible();
+    await expect(aside.getByText(/Site managed by AI DODO/i)).toBeVisible();
 
     // Phone link
     const phoneLink = aside.getByRole("link", { name: /\+971 55 403 9966/i }).first();

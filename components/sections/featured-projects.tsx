@@ -70,7 +70,13 @@ export async function FeaturedProjectsSection({ locale }: { locale: string }) {
         <StaggerChildren className="mt-12 grid gap-6 lg:grid-cols-3">
           {projects.map((project) => (
             <StaggerItem key={project.slug}>
-              <article className="group relative overflow-hidden rounded-2xl bg-card shadow-sm">
+              {/* Whole card is a link to /projects/[slug] — clicking the
+                  image, title, or arrow all go to the detail page. */}
+              <Link
+                href={`/projects/${project.slug}`}
+                aria-label={`${project.title} — ${project.location}`}
+                className="group relative block overflow-hidden rounded-2xl bg-card shadow-sm transition-shadow hover:shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-gold)] focus-visible:ring-offset-2"
+              >
                 <ProductImage
                   image={project.image}
                   alt={project.title}
@@ -89,15 +95,15 @@ export async function FeaturedProjectsSection({ locale }: { locale: string }) {
                   <h3 className="mt-2 font-serif text-lg font-bold leading-tight sm:text-xl">
                     {project.title}
                   </h3>
-                  <div className="mt-3 inline-flex items-center gap-2 text-xs font-medium opacity-80">
-                    <span>{t("common.viewAll")}</span>
+                  <div className="mt-3 inline-flex items-center gap-2 text-xs font-medium opacity-90 transition-colors group-hover:text-[var(--color-brand-gold)]">
+                    <span>{t("projects.viewProject")}</span>
                     <ArrowRight
                       className="size-3 transition-transform group-hover:translate-x-1 rtl:-scale-x-100 rtl:group-hover:-translate-x-1"
                       aria-hidden
                     />
                   </div>
                 </div>
-              </article>
+              </Link>
             </StaggerItem>
           ))}
         </StaggerChildren>

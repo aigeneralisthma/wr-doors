@@ -178,7 +178,7 @@ INSERT INTO site_settings (key, value_en, value_ar, type, description) VALUES
 
 -- Contact info
 ('contact.phone', '+971 55 403 9966', '+971 55 403 9966', 'text', 'Primary contact phone (UAE)'),
-('contact.email', 'wahatalruman36@gmail.com', 'wahatalruman36@gmail.com', 'text', 'Primary contact email'),
+('contact.email', 'aigeneralist.hma@gmail.com', 'aigeneralist.hma@gmail.com', 'text', 'Primary contact email'),
 ('contact.whatsapp', 'https://wa.me/971554039966', 'https://wa.me/971554039966', 'text', 'WhatsApp click-to-chat URL'),
 ('contact.address',
  'Dubai, United Arab Emirates',

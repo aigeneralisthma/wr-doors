@@ -1,7 +1,7 @@
 import { defineRouting } from "next-intl/routing";
 
 /**
- * i18n routing config for DODA × WR Doors.
+ * i18n routing config for WR Doors.
  *
  * Supports two locales:
  * - `en` (English) - default, LTR

@@ -4,19 +4,22 @@
  */
 import { Link, Section, Text } from "@react-email/components";
 
-import { BRAND, EmailLayout, GoldAccent, Heading } from "./_layout";
+import { BRAND, EmailLayout, GoldAccent, Heading, type EmailContact } from "./_layout";
 
 interface QuoteConfirmationProps {
   name: string;
   /** The product category they asked about (e.g. "WPC Doors") — already locale-resolved */
   productLabel?: string;
   locale: "en" | "ar";
+  /** Admin-editable contact info — appears in the email footer */
+  contact?: EmailContact;
 }
 
 export default function CustomerQuoteConfirmation({
   name,
   productLabel,
   locale,
+  contact,
 }: QuoteConfirmationProps) {
   const dir = locale === "ar" ? "rtl" : "ltr";
 
@@ -48,7 +51,7 @@ export default function CustomerQuoteConfirmation({
         };
 
   return (
-    <EmailLayout preview={copy.preview} dir={dir}>
+    <EmailLayout preview={copy.preview} dir={dir} contact={contact}>
       <Heading dir={dir}>{copy.heading}</Heading>
       <GoldAccent />
       <Text

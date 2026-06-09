@@ -1,15 +1,16 @@
-import { getTranslations } from "next-intl/server";
+import { getTranslations, getLocale } from "next-intl/server";
 import { Mail, Phone, MessageCircle, MapPin } from "lucide-react";
 
 import { Link } from "@/i18n/navigation";
 import { Container } from "./container";
-import { DodaWrLockup } from "@/components/brand/doda-wr-lockup";
+import { WrDoorsLogo } from "@/components/brand/wr-doors-logo";
 import { GoldAccent } from "@/components/brand/gold-accent";
-import { BRAND, CONTACT, whatsappUrl } from "@/lib/constants";
+import { BRAND } from "@/lib/constants";
+import { getContactInfo, whatsappUrlFor } from "@/lib/site-config";
 
 /**
  * Footer — site-wide footer with three feature areas:
- *   1. Brand block — co-brand lockup + tagline + DODA endorsement
+ *   1. Brand block — WR Doors logo + tagline + "Site managed by AI DODO™"
  *   2. Quick links — mirror of header nav (good for SEO link equity)
  *   3. Contact block — phone, email, WhatsApp, address
  *
@@ -19,6 +20,11 @@ import { BRAND, CONTACT, whatsappUrl } from "@/lib/constants";
  */
 export async function Footer() {
   const t = await getTranslations();
+  const locale = await getLocale();
+  // Resolved from site_settings → falls back to CONTACT constants if a
+  // row is missing/empty. Admin edits in /admin/site-settings reflect
+  // here on the next ISR revalidate.
+  const contact = await getContactInfo(locale);
   const year = new Date().getFullYear();
 
   const navLinks = [
@@ -35,10 +41,7 @@ export async function Footer() {
         <div className="grid gap-12 lg:grid-cols-3">
           {/* Brand block */}
           <div className="space-y-4">
-            <DodaWrLockup
-              variant="footer"
-              className="text-[var(--color-brand-cream)]"
-            />
+            <WrDoorsLogo className="h-10 rounded-sm" />
             <p className="max-w-sm text-sm leading-relaxed opacity-80">
               {t("footer.tagline")}
             </p>
@@ -76,25 +79,25 @@ export async function Footer() {
             <ul className="mt-5 space-y-4 text-sm">
               <li>
                 <a
-                  href={`tel:${CONTACT.phoneE164}`}
+                  href={`tel:${contact.phoneE164}`}
                   className="inline-flex items-center gap-3 opacity-80 transition-opacity hover:opacity-100"
                 >
                   <Phone className="size-4 text-[var(--color-brand-gold)]" />
-                  <span dir="ltr">{CONTACT.phone}</span>
+                  <span dir="ltr">{contact.phone}</span>
                 </a>
               </li>
               <li>
                 <a
-                  href={`mailto:${CONTACT.email}`}
+                  href={`mailto:${contact.email}`}
                   className="inline-flex items-center gap-3 break-all opacity-80 transition-opacity hover:opacity-100"
                 >
                   <Mail className="size-4 text-[var(--color-brand-gold)]" />
-                  <span>{CONTACT.email}</span>
+                  <span>{contact.email}</span>
                 </a>
               </li>
               <li>
                 <a
-                  href={whatsappUrl()}
+                  href={whatsappUrlFor(contact)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-3 opacity-80 transition-opacity hover:opacity-100"
@@ -105,11 +108,7 @@ export async function Footer() {
               </li>
               <li className="inline-flex items-start gap-3 opacity-80">
                 <MapPin className="mt-0.5 size-4 shrink-0 text-[var(--color-brand-gold)]" />
-                <span>
-                  {CONTACT.address.line1}
-                  {CONTACT.address.city ? `, ${CONTACT.address.city}` : ""}
-                  {CONTACT.address.country ? `, ${CONTACT.address.country}` : ""}
-                </span>
+                <span>{contact.address}</span>
               </li>
             </ul>
           </div>

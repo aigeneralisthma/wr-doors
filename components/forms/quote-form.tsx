@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslations } from "next-intl";
-import { AlertCircle, CheckCircle, MessageCircle } from "lucide-react";
+import { AlertCircle, CheckCircle, MessageCircle, Package, Palette } from "lucide-react";
 
 import {
   quoteSchema,
@@ -114,8 +115,28 @@ function SuccessState({
 
 /* ── Main component ────────────────────────────────────────────────────── */
 
+/** Services that can be pre-selected via `?service=<key>` from /services. */
+const FROM_SERVICE_ALLOWED = ["installation", "custom"] as const;
+type FromServiceKey = (typeof FROM_SERVICE_ALLOWED)[number];
+
+const FROM_SERVICE_ICON: Record<FromServiceKey, React.ElementType> = {
+  installation: Package,
+  custom: Palette,
+};
+
 export function QuoteForm({ locale }: { locale: string }) {
   const t = useTranslations("quote");
+  const searchParams = useSearchParams();
+
+  // Read `?service=<key>` if it was passed from the services page.
+  // Used to show a small context banner so the user understands which
+  // service-card brought them here and the team knows the lead's origin.
+  const fromService: FromServiceKey | null = (() => {
+    const raw = searchParams.get("service");
+    return raw && (FROM_SERVICE_ALLOWED as readonly string[]).includes(raw)
+      ? (raw as FromServiceKey)
+      : null;
+  })();
 
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -174,6 +195,28 @@ export function QuoteForm({ locale }: { locale: string }) {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-5">
+      {/* Context banner — shown only when the user arrived from a service
+          card on /services, so they don't feel like the quote form is
+          unrelated to their click. */}
+      {fromService && (() => {
+        const Icon = FROM_SERVICE_ICON[fromService];
+        return (
+          <div className="-mt-2 flex items-center gap-3 rounded-xl border border-[var(--color-brand-gold)]/40 bg-amber-50/60 p-3.5">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--color-brand-gold)]">
+              <Icon className="h-4 w-4 text-[var(--color-brand-navy)]" />
+            </div>
+            <div>
+              <p className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">
+                {t("fromServiceLabel")}
+              </p>
+              <p className="text-sm font-semibold text-foreground">
+                {t(`fromService.${fromService}`)}
+              </p>
+            </div>
+          </div>
+        );
+      })()}
+
       {/* Product category */}
       <Field htmlFor="qt-product" label={t("productLabel")} error={errors.product?.message}>
         <NativeSelect

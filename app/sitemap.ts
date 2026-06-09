@@ -108,10 +108,25 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
   }
 
-  // We don't have project detail pages yet (deferred to v2) — projects
-  // are listed on /projects only, so they don't get individual sitemap
-  // entries. The /projects route itself is in STATIC_ROUTES above.
-  void projects;
+  // Project detail pages — one entry per locale per project, mirroring
+  // the product pattern with hreflang alternates so Google/Bing know the
+  // en ⇄ ar pairs.
+  for (const p of projects ?? []) {
+    for (const locale of LOCALES) {
+      entries.push({
+        url: `${BRAND.url}/${locale}/projects/${p.slug}`,
+        lastModified: p.updated_at ? new Date(p.updated_at) : new Date(),
+        changeFrequency: "monthly",
+        priority: 0.5,
+        alternates: {
+          languages: {
+            en: `${BRAND.url}/en/projects/${p.slug}`,
+            ar: `${BRAND.url}/ar/projects/${p.slug}`,
+          },
+        },
+      });
+    }
+  }
 
   return entries;
 }

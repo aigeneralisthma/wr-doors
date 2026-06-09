@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useTranslations } from "next-intl";
@@ -123,10 +124,21 @@ function SuccessState({
 
 export function BookingForm({ locale }: { locale: string }) {
   const t = useTranslations("booking");
+  const searchParams = useSearchParams();
 
-  const [step, setStep] = useState<1 | 2>(1);
+  // If the user arrived from /services with `?service=<key>`, skip the
+  // service-picker step and jump straight to the contact-details step.
+  // Guard against stale/invalid params with the SERVICE_TYPES allow-list.
+  const preselectedService = (() => {
+    const raw = searchParams.get("service");
+    return raw && (SERVICE_TYPES as readonly string[]).includes(raw)
+      ? (raw as ServiceType)
+      : null;
+  })();
+
+  const [step, setStep] = useState<1 | 2>(preselectedService ? 2 : 1);
   const [selectedService, setSelectedService] = useState<ServiceType | null>(
-    null,
+    preselectedService,
   );
   const [serviceError, setServiceError] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -279,6 +291,35 @@ export function BookingForm({ locale }: { locale: string }) {
       {/* ── Step 2: Contact details ── */}
       {step === 2 && (
         <form onSubmit={form.handleSubmit(handleSubmit)} noValidate>
+          {/* Selected-service chip — shows what they're booking + a way back */}
+          {selectedService && (() => {
+            const Icon = SERVICE_ICON[selectedService];
+            return (
+              <div className="mb-6 flex items-center justify-between gap-3 rounded-xl border border-[var(--color-brand-gold)]/40 bg-amber-50/60 p-3.5">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--color-brand-gold)]">
+                    <Icon className="h-4 w-4 text-[var(--color-brand-navy)]" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">
+                      {t("selectedServiceLabel")}
+                    </p>
+                    <p className="text-sm font-semibold text-foreground">
+                      {t(`services.${selectedService}`)}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleBack}
+                  className="text-xs font-medium text-primary underline-offset-4 hover:underline"
+                >
+                  {t("changeService")}
+                </button>
+              </div>
+            );
+          })()}
+
           <div className="space-y-5">
             {/* Name */}
             <div className="space-y-1.5">

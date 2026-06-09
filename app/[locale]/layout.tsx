@@ -80,10 +80,8 @@ export async function generateMetadata({
       template: isArabic ? `%s | وَر دورز` : `%s | WR Doors`,
     },
     description: isArabic
-      ? "أبواب WPC مخصصة، مداخل ألمنيوم محورية، أنظمة منزلقة، وكسوة جدران. صُنعت في الإمارات بضمان 10 سنوات. مدعوم بمنصة دودا."
-      : "Custom WPC doors, pivot aluminium entries, sliding systems, and wall cladding. Crafted in UAE with a 10-year warranty. Powered by DODA.",
-    /** Names DODA as the publishing organization (co-brand strategy) */
-    publisher: BRAND.platform,
+      ? "أبواب WPC مخصصة، مداخل ألمنيوم محورية، أنظمة منزلقة، وكسوة جدران. صُنعت في الإمارات بضمان 10 سنوات."
+      : "Custom WPC doors, pivot aluminium entries, sliding systems, and wall cladding. Crafted in UAE with a 10-year warranty.",
     applicationName: BRAND.name,
     /** SEO: alternate-language links for hreflang */
     alternates: {

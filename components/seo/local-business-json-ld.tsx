@@ -55,11 +55,6 @@ export function LocalBusinessJsonLd({ locale }: LocalBusinessJsonLdProps) {
       "@type": "Country",
       name: "United Arab Emirates",
     },
-    /** Publisher/parent — DODA platform per co-brand strategy */
-    publisher: {
-      "@type": "Organization",
-      name: BRAND.platform,
-    },
     // sameAs would list social URLs — empty for Phase 1, populate when client provides
   };
 

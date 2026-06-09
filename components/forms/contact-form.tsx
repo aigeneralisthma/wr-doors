@@ -145,7 +145,19 @@ export function ContactForm({ locale }: { locale: string }) {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-5">
+    <>
+      {/* Form heading — kept INSIDE the form component so it disappears
+          when the success state replaces it. Previously lived in
+          contact/page.tsx and stayed visible after submit (UX bug). */}
+      <p className="mb-1 font-mono text-xs font-semibold uppercase tracking-widest text-primary">
+        {t("formTitle")}
+      </p>
+      <h2 className="mb-2 font-serif text-2xl font-bold text-foreground">
+        {t("formSubtitle")}
+      </h2>
+      <div className="mb-7 h-px w-full bg-border" />
+
+      <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-5">
       {/* Name + Email (2-col on sm+) */}
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
         <Field
@@ -248,5 +260,6 @@ export function ContactForm({ locale }: { locale: string }) {
         {submitting ? t("submitting") : t("submit")}
       </Button>
     </form>
+    </>
   );
 }

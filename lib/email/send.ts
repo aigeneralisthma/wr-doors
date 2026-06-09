@@ -79,8 +79,14 @@ function customerSubject(
   }[kind];
 }
 
-/** Reply-to header: customer replies bounce to the business inbox. */
-const CUSTOMER_REPLY_TO = "wahatalruman36@gmail.com";
+/**
+ * Reply-to header: customer replies bounce to the admin inbox.
+ * Pulled from env (via getAdminEmail) so a single env var change reroutes
+ * BOTH admin alerts AND customer reply-tos to the new address.
+ */
+function customerReplyTo(): string {
+  return getAdminEmail();
+}
 
 export async function sendCustomerContactConfirmation(
   to: string,
@@ -91,7 +97,7 @@ export async function sendCustomerContactConfirmation(
     to,
     subject: customerSubject("contact", locale),
     template,
-    replyTo: CUSTOMER_REPLY_TO,
+    replyTo: customerReplyTo(),
   });
 }
 
@@ -104,7 +110,7 @@ export async function sendCustomerQuoteConfirmation(
     to,
     subject: customerSubject("quote", locale),
     template,
-    replyTo: CUSTOMER_REPLY_TO,
+    replyTo: customerReplyTo(),
   });
 }
 
@@ -117,7 +123,7 @@ export async function sendCustomerBookingConfirmation(
     to,
     subject: customerSubject("booking", locale),
     template,
-    replyTo: CUSTOMER_REPLY_TO,
+    replyTo: customerReplyTo(),
   });
 }
 

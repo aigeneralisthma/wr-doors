@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import type { Metadata } from "next";
 
@@ -63,7 +64,12 @@ export default async function BookPage({
       <section className="py-12 md:py-16">
         <Container>
           <div className="mx-auto max-w-xl rounded-2xl border border-border bg-card p-7 shadow-sm md:p-10">
-            <BookingForm locale={locale} />
+            {/* Suspense required because BookingForm uses useSearchParams()
+                to read the optional `?service=...` deep-link; without this,
+                /book bails out of static generation. */}
+            <Suspense fallback={<div className="min-h-[20rem]" />}>
+              <BookingForm locale={locale} />
+            </Suspense>
           </div>
         </Container>
       </section>

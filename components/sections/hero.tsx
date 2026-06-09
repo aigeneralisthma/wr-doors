@@ -46,7 +46,7 @@ export async function HeroSection({ locale }: { locale: string }) {
         className="pointer-events-none absolute -end-32 top-1/3 hidden h-96 w-96 rounded-full bg-[var(--color-brand-gold)] opacity-10 blur-3xl lg:block"
       />
 
-      <Container className="relative grid items-center gap-12 py-16 sm:py-24 lg:grid-cols-2 lg:gap-16 lg:py-32">
+      <Container className="relative grid items-center gap-10 py-10 sm:py-14 lg:grid-cols-2 lg:gap-14 lg:py-16">
         {/* Copy column */}
         <div className="order-2 lg:order-1">
           <FadeIn immediate>
@@ -72,11 +72,13 @@ export async function HeroSection({ locale }: { locale: string }) {
           </FadeIn>
 
           <FadeIn immediate delay={0.3}>
+            {/* Both CTAs share the gold treatment — equal-weight conversion
+                paths. Matches the same pattern as final-cta + about CTAs. */}
             <div className="mt-8 flex flex-wrap items-center gap-3 sm:gap-4">
               <BrandButton brand="gold" size="xl" asChild>
                 <Link href="/products">{t("home.heroCtaPrimary")}</Link>
               </BrandButton>
-              <BrandButton brand="navy" size="xl" asChild>
+              <BrandButton brand="gold" size="xl" asChild>
                 <Link href="/quote">{t("home.heroCtaSecondary")}</Link>
               </BrandButton>
             </div>
@@ -107,7 +109,10 @@ export async function HeroSection({ locale }: { locale: string }) {
           </FadeIn>
         </div>
 
-        {/* Visual column — large product hero shot with floating spec card */}
+        {/* Visual column — large product hero shot with floating spec card.
+            Natural aspect ratio (4:5 on mobile, 5:6 on lg+) — the copy and
+            visual columns are centered against each other so neither leaves
+            orphan whitespace at the top of the section. */}
         <div className="relative order-1 lg:order-2">
           <FadeIn immediate delay={0.1}>
             <div className="relative aspect-[4/5] overflow-hidden rounded-2xl shadow-2xl lg:aspect-[5/6]">
@@ -121,6 +126,11 @@ export async function HeroSection({ locale }: { locale: string }) {
                   }
                   sizes="(max-width: 1024px) 100vw, 50vw"
                   priority
+                  // absolute inset-0 → ProductImage's wrapper fills the
+                  // aspect-ratio parent. Without this, the wrapper has no
+                  // height and the <img>'s h-full collapses to 0, leaving
+                  // empty space below the photo.
+                  className="absolute inset-0"
                 />
               ) : (
                 <div className="flex h-full items-center justify-center bg-[var(--color-brand-cream)] font-mono text-xs uppercase tracking-widest text-muted-foreground">
@@ -133,20 +143,23 @@ export async function HeroSection({ locale }: { locale: string }) {
                 aria-hidden
                 className="pointer-events-none absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-[var(--color-brand-navy)]/40 to-transparent"
               />
-            </div>
-          </FadeIn>
 
-          {/* Floating spec card — a touch of editorial flair */}
-          <FadeIn immediate delay={0.3}>
-            <div className="absolute bottom-6 start-6 max-w-[16rem] rounded-xl border border-border bg-background/95 p-5 shadow-lg backdrop-blur sm:bottom-8 sm:start-8">
-              <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-secondary">
-                {t("brand.platform")} × {t("brand.name")}
-              </p>
-              <p className="mt-2 font-serif text-lg font-semibold leading-tight">
-                {locale === "ar"
-                  ? "صُنع لمعمار الإمارات"
-                  : "Built for UAE architecture"}
-              </p>
+              {/* Floating spec card — a touch of editorial flair. Anchored
+                  inside the image container so it tracks the image bottom
+                  even when the column stretches taller than the image's
+                  natural aspect ratio. */}
+              <FadeIn immediate delay={0.3}>
+                <div className="absolute bottom-6 start-6 max-w-[16rem] rounded-xl border border-border bg-background/95 p-5 shadow-lg backdrop-blur sm:bottom-8 sm:start-8">
+                  <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-secondary">
+                    {t("brand.name")}
+                  </p>
+                  <p className="mt-2 font-serif text-lg font-semibold leading-tight">
+                    {locale === "ar"
+                      ? "صُنع لمعمار الإمارات"
+                      : "Built for UAE architecture"}
+                  </p>
+                </div>
+              </FadeIn>
             </div>
           </FadeIn>
         </div>

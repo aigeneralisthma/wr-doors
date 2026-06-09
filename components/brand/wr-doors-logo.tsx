@@ -1,94 +1,63 @@
 import * as React from "react";
+import Image from "next/image";
+
 import { cn } from "@/lib/utils";
 
 /**
- * WR Doors wordmark recreated from the client flyer.
+ * WR Doors official logo (PNG asset from the client).
  *
- * Visual structure (matches flyer):
- *   - Outer square frame (open at top-right corner)
- *   - Solid filled corner accent (the "shield" feel of the flyer)
- *   - Stacked text: "WR DOORS" (display) / "TRADING LLC." (subtitle)
+ * Source: `Requirments/Assets/WR_Doors_Logo.png`, copied to
+ * `public/assets/brand/wr-doors-logo.png` so it can be served by next/image.
  *
- * The frame uses `currentColor` so we can recolor the logo via parent text
- * color — gold on navy, navy on cream, white on dark, etc.
+ * Sizing: controlled by parent via `className`. The intrinsic 1310×800
+ * (aspect ratio ~1.64:1) is passed to next/image for layout-shift-free
+ * rendering, then Tailwind sizing utilities (e.g. `h-10 w-auto`) take over
+ * at display time.
  *
- * Sizing: controlled by parent. Use Tailwind utilities like `h-10 w-auto`.
+ * Color: the PNG ships with its own background — `currentColor` no longer
+ * applies. If a dark/light-mode variant is ever needed, swap the `src` per
+ * theme via `useTheme()` rather than re-introducing the SVG.
+ *
+ * `priority` defaults to false. The header lockup overrides it to `true`
+ * so the logo isn't deferred behind the LCP image.
  */
-export interface WrDoorsLogoProps extends React.SVGAttributes<SVGSVGElement> {
-  /** Show the "Trading LLC." line under the wordmark. Hidden in compact contexts. */
-  showSubtitle?: boolean;
-  /** Accessibility label */
+export interface WrDoorsLogoProps {
+  /** Tailwind classes that control size + spacing. */
+  className?: string;
+  /** Accessibility label / alt text. */
   title?: string;
+  /** Hint next/image to preload (use for header above-the-fold). */
+  priority?: boolean;
+  /**
+   * Kept for API compatibility with the previous SVG component — has no
+   * effect on the PNG (subtitle is baked into the asset). Will be removed
+   * in a follow-up cleanup once all call sites stop passing it.
+   *
+   * @deprecated
+   */
+  showSubtitle?: boolean;
 }
 
+/** Intrinsic dimensions of the source PNG (1310 × 800). */
+const INTRINSIC_WIDTH = 1310;
+const INTRINSIC_HEIGHT = 800;
+
 export function WrDoorsLogo({
-  showSubtitle = true,
-  title = "WR Doors — Wahat Al Ruman Doors Trading LLC",
+  title = "WR Doors",
   className,
-  ...props
+  priority = false,
+  // showSubtitle is intentionally unused — see prop docs.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  showSubtitle: _showSubtitle,
 }: WrDoorsLogoProps) {
   return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 280 100"
-      role="img"
-      aria-label={title}
+    <Image
+      src="/assets/brand/wr-doors-logo.png"
+      alt={title}
+      width={INTRINSIC_WIDTH}
+      height={INTRINSIC_HEIGHT}
+      priority={priority}
       className={cn("h-10 w-auto", className)}
-      {...props}
-    >
-      <title>{title}</title>
-
-      {/* Open-corner square frame (navy / currentColor) */}
-      <g stroke="currentColor" strokeWidth="3" fill="none">
-        {/* Bottom + left + bottom-right corner */}
-        <path d="M 10 10 L 10 90 L 78 90 L 78 70" strokeLinecap="square" />
-        {/* Top + right partial (open at top-right corner) */}
-        <path d="M 10 10 L 60 10 M 78 10 L 78 30" strokeLinecap="square" />
-      </g>
-
-      {/* Solid filled corner block (the "shield" accent from the flyer) */}
-      <rect x="50" y="34" width="22" height="32" fill="currentColor" />
-
-      {/* Wordmark — "WR" inside the frame */}
-      <text
-        x="22"
-        y="64"
-        fontFamily="var(--font-serif), Georgia, serif"
-        fontSize="36"
-        fontWeight="700"
-        fill="currentColor"
-        letterSpacing="-1"
-      >
-        WR
-      </text>
-
-      {/* "DOORS" text block (to the right of the frame) */}
-      <text
-        x="100"
-        y="48"
-        fontFamily="var(--font-sans), system-ui, sans-serif"
-        fontSize="22"
-        fontWeight="700"
-        fill="currentColor"
-        letterSpacing="4"
-      >
-        DOORS
-      </text>
-
-      {showSubtitle && (
-        <text
-          x="100"
-          y="72"
-          fontFamily="var(--font-sans), system-ui, sans-serif"
-          fontSize="12"
-          fontWeight="500"
-          fill="currentColor"
-          letterSpacing="3"
-          opacity="0.75"
-        >
-          TRADING LLC.
-        </text>
-      )}
-    </svg>
+    />
   );
 }

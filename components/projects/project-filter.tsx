@@ -106,6 +106,7 @@ export function ProjectFilter({ projects }: ProjectFilterProps) {
           {filtered.map((project) => (
             <ProjectCard
               key={project.slug}
+              slug={project.slug}
               category={project.category}
               image={project.image}
               title={project.title}

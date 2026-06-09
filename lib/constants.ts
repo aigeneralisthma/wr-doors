@@ -1,5 +1,5 @@
 /**
- * WR Doors × DODA — Brand and business constants.
+ * WR Doors — Brand and business constants.
  *
  * Single source of truth for anything that might change across the project
  * (contact details, brand names, social URLs, etc.). Always import from here
@@ -9,15 +9,13 @@
 export const BRAND = {
   /** Primary consumer-facing brand name */
   name: "WR Doors",
-  /** Co-brand: the platform powering WR Doors */
-  platform: "DODA",
   /** Legal entity — used only in footer, T&C, license disclosure */
   legalName: "Wahat Al Ruman Doors Trading LLC",
   /** Legal entity in Arabic */
   legalNameAr: "واحة الرمان لتجارة الأبواب ذ.م.م",
-  /** Co-brand tagline used in footer + meta tags */
-  endorsement: "WR Doors is a DODA platform brand",
-  endorsementAr: "علامة وَر دورز جزء من منصة دودا",
+  /** Trademark line shown in footer + emails + meta */
+  endorsement: "Site managed by AI DODO™",
+  endorsementAr: "الموقع يُدار بواسطة AI DODO™",
   /** Default site URL — overridden in prod by NEXT_PUBLIC_SITE_URL */
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://wrdoors.vercel.app",
 } as const;
@@ -27,7 +25,7 @@ export const CONTACT = {
   phone: "+971 55 403 9966",
   /** E.164 format for tel: and wa.me */
   phoneE164: "971554039966",
-  email: "wahatalruman36@gmail.com",
+  email: "aigeneralist.hma@gmail.com",
   /** WhatsApp click-to-chat base URL — append &text=... in usage */
   whatsappBase: "https://wa.me/971554039966",
   /** Office location (UAE) — fill in real address before launch */

@@ -5,11 +5,8 @@ import {
   Award,
   Building2,
   CheckCircle,
-  Globe2,
   Languages,
-  Layers,
   Shield,
-  Wrench,
 } from "lucide-react";
 
 import { BRAND } from "@/lib/constants";
@@ -66,12 +63,6 @@ export default async function AboutPage({
     { icon: Languages, titleKey: "value4Title", bodyKey: "value4Body" },
   ];
 
-  const dodaBenefits: Array<{ icon: React.ElementType; titleKey: string; bodyKey: string }> = [
-    { icon: Globe2, titleKey: "dodaB1Title", bodyKey: "dodaB1Body" },
-    { icon: Layers, titleKey: "dodaB2Title", bodyKey: "dodaB2Body" },
-    { icon: Wrench, titleKey: "dodaB3Title", bodyKey: "dodaB3Body" },
-  ];
-
   return (
     <main>
       {/* ── Hero ── */}
@@ -121,46 +112,6 @@ export default async function AboutPage({
                 </li>
               </ul>
             </aside>
-          </div>
-        </Container>
-      </section>
-
-      {/* ── DODA Platform section (navy bg, branded) ── */}
-      <section
-        id="doda-platform"
-        className="bg-[var(--color-brand-navy)] py-14 text-white md:py-20"
-      >
-        <Container>
-          <div className="max-w-2xl">
-            <p className="mb-3 font-mono text-xs font-semibold uppercase tracking-widest text-[var(--color-brand-gold)]">
-              {t("dodaEyebrow")}
-            </p>
-            <h2 className="font-serif text-3xl font-bold leading-tight md:text-4xl">
-              {t("dodaTitle")}
-            </h2>
-            <GoldAccent width="short" className="my-5" />
-            <p className="text-base leading-relaxed text-white/75">
-              {t("dodaIntro")}
-            </p>
-          </div>
-
-          <div className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-3">
-            {dodaBenefits.map(({ icon: Icon, titleKey, bodyKey }) => (
-              <div
-                key={titleKey}
-                className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm"
-              >
-                <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-[var(--color-brand-gold)]/20">
-                  <Icon className="h-5 w-5 text-[var(--color-brand-gold)]" />
-                </div>
-                <h3 className="mb-2 font-serif text-lg font-bold">
-                  {t(titleKey)}
-                </h3>
-                <p className="text-sm leading-relaxed text-white/70">
-                  {t(bodyKey)}
-                </p>
-              </div>
-            ))}
           </div>
         </Container>
       </section>
@@ -239,17 +190,18 @@ export default async function AboutPage({
                   {t("ctaSubtitle")}
                 </p>
               </div>
+              {/* Both CTAs share the gold treatment for visual consistency
+                  — they're equal-weight conversion paths (calendar booking
+                  vs. quote lead). The /book link pre-selects the consultation
+                  service so the user skips Step 1 of the booking form. */}
               <div className="flex shrink-0 flex-col gap-3 sm:flex-row">
-                <Link href={`/${locale}/book`}>
+                <Link href={`/${locale}/book?service=consultation`}>
                   <Button className="bg-[var(--color-brand-gold)] text-[var(--color-brand-navy)] hover:bg-[var(--color-brand-gold)]/90">
                     {t("ctaBook")}
                   </Button>
                 </Link>
                 <Link href={`/${locale}/quote`}>
-                  <Button
-                    variant="outline"
-                    className="border-white/30 bg-transparent text-white hover:bg-white/10 hover:text-white"
-                  >
+                  <Button className="bg-[var(--color-brand-gold)] text-[var(--color-brand-navy)] hover:bg-[var(--color-brand-gold)]/90">
                     {t("ctaQuote")}
                   </Button>
                 </Link>

@@ -1,10 +1,13 @@
 import { ArrowRight } from "lucide-react";
 
+import { Link } from "@/i18n/navigation";
 import { ProductImage } from "@/components/ui/product-image";
 import type { OptimizedImage } from "@/lib/image-manifest";
 import type { ProjectCategory } from "@/lib/supabase/database.types";
 
 interface ProjectCardProps {
+  /** Project slug — used to build the detail-page URL */
+  slug: string;
   /** Used for `data-category` attribute on the article (for tests) */
   category: ProjectCategory;
   /** Resolved OptimizedImage (caller looks up via `projectImage(row)`) */
@@ -31,11 +34,11 @@ interface ProjectCardProps {
  *   │  → View details        │
  *   └────────────────────────┘
  *
- * Decorative-only card for Prompt 6 — there's no per-project detail page
- * yet, so the arrow CTA is visual not navigational. When Supabase-backed
- * project detail pages land (post-launch), wrap this in a Link.
+ * The whole card is a Link to `/projects/[slug]` — clicking anywhere
+ * (image, title, or the arrow CTA) navigates to the detail page.
  */
 export function ProjectCard({
+  slug,
   category,
   image,
   title,
@@ -44,8 +47,9 @@ export function ProjectCard({
   viewLabel,
 }: ProjectCardProps) {
   return (
-    <article
-      className="group relative overflow-hidden rounded-2xl bg-card shadow-sm transition-shadow hover:shadow-lg"
+    <Link
+      href={`/projects/${slug}`}
+      className="group relative block overflow-hidden rounded-2xl bg-card shadow-sm transition-shadow hover:shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-brand-gold)] focus-visible:ring-offset-2"
       data-category={category}
       aria-label={`${title} — ${location}`}
     >
@@ -70,7 +74,7 @@ export function ProjectCard({
           {title}
         </h3>
         <p className="mt-2 text-xs text-white/70 line-clamp-2">{summary}</p>
-        <div className="mt-3 inline-flex items-center gap-2 text-xs font-medium opacity-90">
+        <div className="mt-3 inline-flex items-center gap-2 text-xs font-medium opacity-90 group-hover:text-[var(--color-brand-gold)] transition-colors">
           <span>{viewLabel}</span>
           <ArrowRight
             className="size-3 transition-transform group-hover:translate-x-1 rtl:-scale-x-100 rtl:group-hover:-translate-x-1"
@@ -78,6 +82,6 @@ export function ProjectCard({
           />
         </div>
       </div>
-    </article>
+    </Link>
   );
 }

@@ -5,6 +5,7 @@ import { Container } from "@/components/layout/container";
 import { BrandButton } from "@/components/brand/brand-button";
 import { GoldAccent } from "@/components/brand/gold-accent";
 import { FadeIn } from "@/components/animations/fade-in";
+import { ShaderBackground } from "@/components/animations/shader-background";
 
 /**
  * FinalCtaSection — the conversion close at the bottom of the homepage.
@@ -26,6 +27,12 @@ export async function FinalCtaSection() {
       className="relative isolate overflow-hidden bg-[var(--color-brand-ink)] py-24 text-white sm:py-32"
       aria-labelledby="final-cta-heading"
     >
+      {/* GLSL ripple shader — sits at the back of the z-stack. Tinted gold
+          (from the wrapper), 30% opacity, `mix-blend-screen` so it only
+          lightens the ink-black background. Rollback: delete this line +
+          the ShaderBackground import above. */}
+      <ShaderBackground className="opacity-30 mix-blend-screen bg-transparent" />
+
       {/* Layered gold gradient on the trailing edge — pure decoration */}
       <div
         aria-hidden
@@ -55,17 +62,18 @@ export async function FinalCtaSection() {
               {t("home.finalCtaBody")}
             </p>
 
+            {/* Both CTAs share the gold treatment — they're equal-weight
+                conversion paths (lead form vs. calendar booking). The
+                /book link carries `?service=consultation` so it skips the
+                service-picker step on the booking form. */}
             <div className="mt-12 flex flex-wrap items-center justify-center gap-4">
               <BrandButton brand="gold" size="xl" asChild>
                 <Link href="/quote">{t("home.finalCtaPrimary")}</Link>
               </BrandButton>
-              <BrandButton
-                brand="ghost"
-                size="xl"
-                asChild
-                className="text-white hover:bg-white/10"
-              >
-                <Link href="/book">{t("home.finalCtaSecondary")}</Link>
+              <BrandButton brand="gold" size="xl" asChild>
+                <Link href="/book?service=consultation">
+                  {t("home.finalCtaSecondary")}
+                </Link>
               </BrandButton>
             </div>
           </div>

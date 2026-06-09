@@ -4,18 +4,21 @@
  */
 import { Link, Section, Text } from "@react-email/components";
 
-import { BRAND, EmailLayout, GoldAccent, Heading } from "./_layout";
+import { BRAND, EmailLayout, GoldAccent, Heading, type EmailContact } from "./_layout";
 
 interface ContactConfirmationProps {
   /** Customer's name as submitted */
   name: string;
   /** Their submission locale */
   locale: "en" | "ar";
+  /** Admin-editable contact info — appears in the email footer */
+  contact?: EmailContact;
 }
 
 export default function CustomerContactConfirmation({
   name,
   locale,
+  contact,
 }: ContactConfirmationProps) {
   const dir = locale === "ar" ? "rtl" : "ltr";
 
@@ -43,7 +46,7 @@ export default function CustomerContactConfirmation({
         };
 
   return (
-    <EmailLayout preview={copy.preview} dir={dir}>
+    <EmailLayout preview={copy.preview} dir={dir} contact={contact}>
       <Heading dir={dir}>{copy.heading}</Heading>
       <GoldAccent />
       <Text

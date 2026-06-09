@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import type { Metadata } from "next";
 import { CheckCircle, MessageCircle, Phone } from "lucide-react";
@@ -49,7 +50,9 @@ async function TrustPanel({ locale }: { locale: string }) {
   return (
     <aside className="rounded-2xl bg-[var(--color-brand-navy)] p-7 text-white">
       <h2 className="mb-1 font-serif text-lg font-bold">WR Doors</h2>
-      <p className="mb-6 text-xs text-white/60">Powered by DODA</p>
+      <p className="mb-6 text-xs text-white/60">
+        {isAr ? "الموقع يُدار بواسطة AI DODO™" : "Site managed by AI DODO™"}
+      </p>
 
       <ul className="mb-8 space-y-3">
         {trustItems.map((item) => (
@@ -115,9 +118,12 @@ export default async function QuotePage({
       <section className="py-12 md:py-16">
         <Container>
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_320px]">
-            {/* Form */}
+            {/* Form — Suspense wrapper required for useSearchParams() in
+                QuoteForm (it reads optional `?service=...` from deep-links). */}
             <div className="rounded-2xl border border-border bg-card p-7 shadow-sm md:p-10">
-              <QuoteForm locale={locale} />
+              <Suspense fallback={<div className="min-h-[28rem]" />}>
+                <QuoteForm locale={locale} />
+              </Suspense>
             </div>
 
             {/* Trust panel — visible lg+ only on the side, below on mobile */}

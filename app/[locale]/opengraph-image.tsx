@@ -8,7 +8,7 @@ import { BRAND } from "@/lib/constants";
  *
  * Generated at request time (or cached at edge) via Next.js's ImageResponse
  * API — no static PNG to ship or keep in sync with brand updates. Renders
- * the WR Doors wordmark + DODA endorsement on the brand navy background
+ * the WR Doors wordmark + AI DODO trademark on the brand navy background
  * with the gold accent bar.
  *
  * Twitter cards reuse this image automatically because we don't ship a
@@ -30,15 +30,17 @@ export default async function OpengraphImage({ params }: OgProps) {
   const isArabic = locale === "ar";
 
   // Brand palette — keep in sync with tailwind theme tokens
-  const NAVY = "#0A1F44"; // DODA navy
-  const GOLD = "#F5B800"; // WR Doors gold
+  const NAVY = "#0A1F44"; // brand navy
+  const GOLD = "#F5B800"; // brand gold
   const CREAM = "#F5F0E8";
 
   const heading = isArabic ? "وَر دورز" : "WR Doors";
   const tagline = isArabic
     ? "أبواب فاخرة وخدمات منزلية في الإمارات"
     : "Premium Doors & Home Services in UAE";
-  const endorsement = isArabic ? "علامة منصة دودا" : "A DODA Platform Brand";
+  const endorsement = isArabic
+    ? "الموقع يُدار بواسطة AI DODO™"
+    : "Site managed by AI DODO™";
 
   return new ImageResponse(
     (

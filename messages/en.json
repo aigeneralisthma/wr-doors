@@ -1,9 +1,8 @@
 {
   "brand": {
     "name": "WR Doors",
-    "platform": "DODA",
     "legal": "Wahat Al Ruman Doors Trading LLC",
-    "endorsement": "WR Doors is a DODA platform brand"
+    "endorsement": "Site managed by AI DODO™"
   },
   "nav": {
     "products": "Products",
@@ -37,7 +36,7 @@
   },
   "home": {
     "metaTitle": "WR Doors — Premium Doors & Home Services in UAE",
-    "metaDescription": "Custom WPC doors, pivot aluminium entries, sliding systems, and wall cladding. Crafted in UAE with a 10-year warranty. Powered by DODA.",
+    "metaDescription": "Custom WPC doors, pivot aluminium entries, sliding systems, and wall cladding. Crafted in UAE with a 10-year warranty.",
     "heroEyebrow": "Local UAE Manufacturer",
     "heroTagline": "Premium Doors. Crafted in UAE.",
     "heroSubtitle": "1,000+ designs. Triple guard against water, sound, and termites. Built in our local factory and backed by a 10-year warranty.",
@@ -249,6 +248,8 @@
     "notesPlaceholder": "Number of doors, specific product interest, access instructions…",
     "next": "Next",
     "back": "Back",
+    "selectedServiceLabel": "You're booking",
+    "changeService": "Change",
     "submit": "Confirm Booking",
     "submitting": "Booking…",
     "successTitle": "Consultation booked!",
@@ -293,6 +294,13 @@
     "messagePlaceholder": "Dimensions, finish preference, installation timeline, any other details…",
     "submit": "Request Quote",
     "submitting": "Sending…",
+    "fromServiceLabel": "Quote request for",
+    "fromService": {
+      "consultation": "Free Consultation",
+      "installation": "Supply & Installation",
+      "technician": "On-Demand Technician",
+      "custom": "Custom Design"
+    },
     "successTitle": "Quote request received!",
     "successBody": "We'll send a detailed estimate to your WhatsApp within 24 hours.",
     "whatsappFollowUp": "Chat on WhatsApp",
@@ -334,6 +342,13 @@
     "ctaSubtitle": "Share your space and we'll send a tailored quote within 24 hours.",
     "ctaQuote": "Request a Quote",
     "ctaWhatsapp": "Chat on WhatsApp",
+    "detail": {
+      "backToProjects": "Back to projects",
+      "ctaTitle": "Want a project like this?",
+      "ctaBody": "Tell us about your space — finish, dimensions, timeline — and we'll send a tailored quote within 24 hours.",
+      "ctaButton": "Request a Quote",
+      "relatedTitle": "More from this category"
+    },
     "categories": {
       "residential": "Residential",
       "commercial": "Commercial",
@@ -373,24 +388,15 @@
     }
   },
   "about": {
-    "metaTitle": "About — WR Doors × DODA",
-    "metaDescription": "WR Doors is a UAE-based premium doors and home services brand, powered by the DODA digital platform. Local factory, 10-year warranty, bilingual support.",
+    "metaTitle": "About — WR Doors",
+    "metaDescription": "WR Doors is a UAE-based premium doors and home services brand. Local factory, 10-year warranty, bilingual support.",
     "heroEyebrow": "Our story",
     "heroTitle": "Premium doors. Crafted in the UAE.",
-    "heroSubtitle": "A local manufacturer building doors and surfaces that last — backed by a tech-forward digital platform.",
+    "heroSubtitle": "A local manufacturer building doors and surfaces that last — designed for the UAE climate.",
     "storyTitle": "Built locally, designed for the UAE climate",
     "storyP1": "WR Doors began as a family-led trading business in the UAE — a response to homeowners struggling to find doors that could survive coastal humidity, intense summer heat, and the salt-laden air of the Gulf.",
     "storyP2": "Today our local factory produces premium WPC interior doors, pivot aluminium entries, sliding systems, and wall cladding for villas, apartments, and commercial spaces across Dubai, Abu Dhabi, Sharjah, and the Northern Emirates.",
     "storyP3": "Every product carries our Triple Guard warranty: protection against water, sound, and termites — backed by a 10-year guarantee and a service network that responds within 24 hours.",
-    "dodaEyebrow": "The platform",
-    "dodaTitle": "Powered by DODA",
-    "dodaIntro": "WR Doors is the first consumer brand on the DODA platform — a digital infrastructure built for premium home-services companies in the Gulf.",
-    "dodaB1Title": "Bilingual by design",
-    "dodaB1Body": "Every customer touchpoint — website, forms, booking, follow-up — works equally well in English and Arabic, with full RTL support.",
-    "dodaB2Title": "One platform, many brands",
-    "dodaB2Body": "DODA's architecture lets us extend into new categories and locations without rebuilding from scratch. WR Doors is the start.",
-    "dodaB3Title": "Customer-first operations",
-    "dodaB3Body": "Lead capture, technician dispatch, and after-sales support all run on the same platform — so nothing slips between teams.",
     "factoryEyebrow": "Manufacturing",
     "factoryTitle": "Factory & Quality Assurance",
     "factoryBody": "Our UAE-based production line is staffed by trained carpenters and quality-assurance specialists. Every door passes a five-point QA before it ships, and we keep finished stock of our most-ordered designs to cut wait times.",
@@ -443,7 +449,7 @@
     "newRequest": "Send another message",
     "genericError": "Something went wrong. Please try again or call us directly at +971 55 403 9966.",
     "infoTitle": "Other ways to reach us",
-    "infoSubtitle": "Powered by DODA",
+    "infoSubtitle": "Site managed by AI DODO™",
     "phoneInfoLabel": "Phone",
     "emailInfoLabel": "Email",
     "whatsappInfoLabel": "WhatsApp",

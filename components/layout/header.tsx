@@ -2,7 +2,7 @@ import { getTranslations } from "next-intl/server";
 
 import { Link } from "@/i18n/navigation";
 import { Container } from "./container";
-import { DodaWrLockup } from "@/components/brand/doda-wr-lockup";
+import { WrDoorsLogo } from "@/components/brand/wr-doors-logo";
 import { BrandButton } from "@/components/brand/brand-button";
 import { LanguageToggle } from "./language-toggle";
 import { MobileNav } from "./mobile-nav";
@@ -19,10 +19,10 @@ const NAV_ITEMS = [
  * Header — sticky site navigation.
  *
  * Layout (desktop):
- *   [DodaWrLockup]  ........... [nav]  [LangToggle]  [Get Quote]
+ *   [WR Doors logo] ........... [nav]  [LangToggle]  [Get Quote]
  *
  * Layout (mobile):
- *   [DodaWrLockup]  .................................. [☰]
+ *   [WR Doors logo] .................................. [☰]
  *
  * Server Component — translations resolved server-side so the SSR HTML
  * ships with the right text and no flash of untranslated content.
@@ -33,13 +33,13 @@ export async function Header() {
   return (
     <header className="sticky top-0 z-40 w-full border-b border-border bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/70">
       <Container as="div" className="flex h-16 items-center gap-4 sm:h-20">
-        {/* Co-brand lockup — links to homepage */}
+        {/* WR Doors logo — links to homepage */}
         <Link
           href="/"
           aria-label="WR Doors home"
           className="me-auto inline-flex shrink-0 items-center text-foreground transition-opacity hover:opacity-80"
         >
-          <DodaWrLockup variant="header" />
+          <WrDoorsLogo className="h-8 rounded-sm sm:h-10" priority />
         </Link>
 
         {/* Desktop nav — hidden on mobile/tablet */}

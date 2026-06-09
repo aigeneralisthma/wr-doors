@@ -12,7 +12,7 @@ import {
   SheetContent,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { DodaWrLockup } from "@/components/brand/doda-wr-lockup";
+import { WrDoorsLogo } from "@/components/brand/wr-doors-logo";
 import { BrandButton } from "@/components/brand/brand-button";
 import { LanguageToggle } from "./language-toggle";
 
@@ -27,7 +27,7 @@ interface MobileNavProps {
  * handled by tw-animate-css's logical-direction variants on Sheet's `side`).
  *
  * Contains:
- *   - Co-brand lockup at the top
+ *   - WR Doors logo at the top
  *   - Vertical link stack
  *   - Language toggle (full pill version)
  *   - Get Quote CTA at the bottom
@@ -51,9 +51,9 @@ export function MobileNav({ navItems }: MobileNavProps) {
         side="right"
         className="flex flex-col gap-6 rtl:!start-0 rtl:!end-auto rtl:border-e rtl:border-s-0"
       >
-        {/* Brand lockup at the top of the drawer */}
+        {/* WR Doors logo at the top of the drawer */}
         <div className="mt-2 text-foreground">
-          <DodaWrLockup variant="header" />
+          <WrDoorsLogo className="h-8 rounded-sm sm:h-10" />
         </div>
 
         {/* Nav links */}

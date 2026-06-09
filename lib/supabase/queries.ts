@@ -142,6 +142,46 @@ export async function getProjectsByCategory(
   return data ?? [];
 }
 
+/** Fetch one published project by slug, or null if missing/unpublished. */
+export async function getProjectBySlug(
+  slug: string,
+): Promise<ProjectRow | null> {
+  const supabase = createStaticClient();
+  const { data, error } = await supabase
+    .from("projects")
+    .select("*")
+    .eq("slug", slug)
+    .eq("is_published", true)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(`getProjectBySlug(${slug}) failed: ${error.message}`);
+  }
+  return data;
+}
+
+/**
+ * Build-time only: fetch all published project slugs for
+ * `generateStaticParams`. Uses the cookie-free static client so it works
+ * during `next build` where `cookies()` isn't available.
+ */
+export async function getProjectSlugsForStaticParams(): Promise<
+  Array<{ slug: string }>
+> {
+  const supabase = createStaticClient();
+  const { data, error } = await supabase
+    .from("projects")
+    .select("slug")
+    .eq("is_published", true);
+
+  if (error) {
+    throw new Error(
+      `getProjectSlugsForStaticParams failed: ${error.message}`,
+    );
+  }
+  return data ?? [];
+}
+
 // =============================================================================
 // SITE SETTINGS (mini CMS)
 // =============================================================================

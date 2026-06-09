@@ -2,7 +2,8 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import type { Metadata } from "next";
 import { Clock, Mail, MapPin, MessageCircle, Phone } from "lucide-react";
 
-import { BRAND, CONTACT, whatsappUrl } from "@/lib/constants";
+import { BRAND } from "@/lib/constants";
+import { getContactInfo, whatsappUrlFor } from "@/lib/site-config";
 import { Container } from "@/components/layout/container";
 import { GoldAccent } from "@/components/brand/gold-accent";
 import { ContactForm } from "@/components/forms/contact-form";
@@ -45,6 +46,8 @@ const GOOGLE_MAPS_EMBED_URL =
 /* ── Info panel ────────────────────────────────────────────────────────── */
 async function InfoPanel({ locale }: { locale: string }) {
   const t = await getTranslations({ locale, namespace: "contact" });
+  // Resolved from admin-editable site_settings (falls back to constants).
+  const contact = await getContactInfo(locale);
   const isAr = locale === "ar";
   const waText = isAr
     ? "مرحباً، أودّ التواصل مع فريق WR Doors"
@@ -54,22 +57,22 @@ async function InfoPanel({ locale }: { locale: string }) {
     {
       Icon: Phone,
       label: t("phoneInfoLabel"),
-      value: CONTACT.phone,
-      href: `tel:${CONTACT.phoneE164}`,
+      value: contact.phone,
+      href: `tel:${contact.phoneE164}`,
       external: false,
     },
     {
       Icon: MessageCircle,
       label: t("whatsappInfoLabel"),
-      value: CONTACT.phone,
-      href: whatsappUrl(waText),
+      value: contact.phone,
+      href: whatsappUrlFor(contact, waText),
       external: true,
     },
     {
       Icon: Mail,
       label: t("emailInfoLabel"),
-      value: CONTACT.email,
-      href: `mailto:${CONTACT.email}`,
+      value: contact.email,
+      href: `mailto:${contact.email}`,
       external: false,
     },
   ];
@@ -104,7 +107,7 @@ async function InfoPanel({ locale }: { locale: string }) {
           </p>
           <div className="flex items-start gap-3 text-sm text-white/90">
             <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-[var(--color-brand-gold)]" />
-            <span>{t("addressBody")}</span>
+            <span>{contact.address}</span>
           </div>
         </li>
 
@@ -159,15 +162,9 @@ export default async function ContactPage({
       <section className="py-14 md:py-20">
         <Container>
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_360px]">
-            {/* Form card */}
+            {/* Form card — the heading is rendered inside ContactForm
+                so it cleanly disappears when the success state shows. */}
             <div className="rounded-2xl border border-border bg-card p-7 shadow-sm md:p-10">
-              <p className="mb-1 font-mono text-xs font-semibold uppercase tracking-widest text-primary">
-                {t("formTitle")}
-              </p>
-              <h2 className="mb-2 font-serif text-2xl font-bold text-foreground">
-                {t("formSubtitle")}
-              </h2>
-              <div className="mb-7 h-px w-full bg-border" />
               <ContactForm locale={locale} />
             </div>
 

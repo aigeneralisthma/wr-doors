@@ -4,7 +4,7 @@
  */
 import { Link, Section, Text } from "@react-email/components";
 
-import { BRAND, EmailLayout, Heading } from "./_layout";
+import { BRAND, EmailLayout, Heading, type EmailContact } from "./_layout";
 
 interface AdminLeadAlertProps {
   /** Lead row id (UUID) — for deep-linking to admin dashboard once it exists */
@@ -21,6 +21,8 @@ interface AdminLeadAlertProps {
   message: string;
   /** Customer's submission locale — admin needs to know which language to reply in */
   customerLocale: "en" | "ar";
+  /** Admin-editable contact info — appears in the email footer */
+  contact?: EmailContact;
 }
 
 export default function AdminLeadAlert({
@@ -35,6 +37,7 @@ export default function AdminLeadAlert({
   location,
   message,
   customerLocale,
+  contact,
 }: AdminLeadAlertProps) {
   const sourceLabel =
     source === "quote"
@@ -46,7 +49,7 @@ export default function AdminLeadAlert({
   const localeLabel = customerLocale === "ar" ? "Arabic 🇸🇦" : "English 🇬🇧";
 
   return (
-    <EmailLayout preview={`New ${source} lead from ${name}`}>
+    <EmailLayout preview={`New ${source} lead from ${name}`} contact={contact}>
       <Heading>New {sourceLabel.toLowerCase()}: {name}</Heading>
       <Text
         style={{

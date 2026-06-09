@@ -1,5 +1,5 @@
 /**
- * Shared email layout — WR Doors × DODA branded shell.
+ * Shared email layout — WR Doors branded shell.
  *
  * Used by all customer + admin templates. Defines header, footer, and the
  * color palette consistent with the website (gold #F5B800 + navy #0A1F44).
@@ -35,15 +35,43 @@ const BRAND = {
 /** Image URLs in emails must be absolute. Falls back to localhost in dev. */
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
+/**
+ * Subset of ContactInfo passed in by the caller — keeps this email layout
+ * decoupled from the site-config helper (lib/site-config.ts is server-only;
+ * email templates may render in build/test contexts where importing it
+ * would fail). Caller resolves the values and passes them in as plain
+ * strings.
+ */
+export interface EmailContact {
+  email: string;
+  phone: string;
+}
+
+const DEFAULT_CONTACT: EmailContact = {
+  email: "aigeneralist.hma@gmail.com",
+  phone: "+971 55 403 9966",
+};
+
 interface EmailLayoutProps {
   /** Browser preview text (the snippet shown in the inbox list view) */
   preview: string;
   /** "ltr" for EN, "rtl" for AR */
   dir?: "ltr" | "rtl";
+  /**
+   * Admin-editable contact info pulled from site_settings. When undefined,
+   * falls back to DEFAULT_CONTACT — so emails still send even if the
+   * caller hasn't been updated yet.
+   */
+  contact?: EmailContact;
   children: ReactNode;
 }
 
-export function EmailLayout({ preview, dir = "ltr", children }: EmailLayoutProps) {
+export function EmailLayout({
+  preview,
+  dir = "ltr",
+  contact = DEFAULT_CONTACT,
+  children,
+}: EmailLayoutProps) {
   return (
     <Html dir={dir} lang={dir === "rtl" ? "ar" : "en"}>
       <Head />
@@ -70,7 +98,7 @@ export function EmailLayout({ preview, dir = "ltr", children }: EmailLayoutProps
             boxShadow: "0 2px 8px rgba(10, 31, 68, 0.06)",
           }}
         >
-          {/* Header: navy bar with WR Doors wordmark + DODA microtext */}
+          {/* Header: navy bar with WR Doors wordmark + AI DODO microtext */}
           <Section
             style={{
               backgroundColor: BRAND.navy,
@@ -98,7 +126,7 @@ export function EmailLayout({ preview, dir = "ltr", children }: EmailLayoutProps
                 textTransform: "uppercase",
               }}
             >
-              Powered by DODA
+              Site managed by AI DODO™
             </Text>
           </Section>
 
@@ -117,17 +145,17 @@ export function EmailLayout({ preview, dir = "ltr", children }: EmailLayoutProps
               }}
             >
               <Link
-                href={`tel:+971554039966`}
+                href={`tel:${contact.phone.replace(/\D/g, "")}`}
                 style={{ color: BRAND.navy, textDecoration: "none", fontWeight: 600 }}
               >
-                +971 55 403 9966
+                {contact.phone}
               </Link>
               {"  ·  "}
               <Link
-                href={`mailto:wahatalruman36@gmail.com`}
+                href={`mailto:${contact.email}`}
                 style={{ color: BRAND.navy, textDecoration: "none", fontWeight: 600 }}
               >
-                wahatalruman36@gmail.com
+                {contact.email}
               </Link>
               {"  ·  "}
               <Link
@@ -146,8 +174,8 @@ export function EmailLayout({ preview, dir = "ltr", children }: EmailLayoutProps
               }}
             >
               {dir === "rtl"
-                ? "علامة وَر دورز جزء من منصة دودا · واحة الرمان لتجارة الأبواب ذ.م.م"
-                : "WR Doors is a DODA platform brand · Wahat Al Ruman Doors Trading LLC"}
+                ? "الموقع يُدار بواسطة AI DODO™ · واحة الرمان لتجارة الأبواب ذ.م.م"
+                : "Site managed by AI DODO™ · Wahat Al Ruman Doors Trading LLC"}
             </Text>
           </Section>
         </Container>

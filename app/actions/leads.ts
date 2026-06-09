@@ -22,6 +22,7 @@ import { createStaticClient } from "@/lib/supabase/static";
 import { contactSchema } from "@/lib/schemas/contact";
 import { quoteSchema } from "@/lib/schemas/quote";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
+import { getContactInfo } from "@/lib/site-config";
 
 import AdminLeadAlert from "@/emails/admin-lead-alert";
 import CustomerContactConfirmation from "@/emails/customer-contact-confirmation";
@@ -135,8 +136,11 @@ export async function submitQuoteLead({
     return { ok: false, error: genericError(locale) };
   }
 
-  // 5. Fire-and-forget emails (don't block response on email failures)
+  // 5. Fire-and-forget emails (don't block response on email failures).
+  //    Fetch admin-editable contact info once and pass it to every template
+  //    so the email footer mailto/tel reflect the current site_settings.
   const productLbl = productLabel(input.product, locale);
+  const contact = await getContactInfo(locale);
   void Promise.allSettled([
     sendAdminLeadAlert(
       createElement(AdminLeadAlert, {
@@ -150,6 +154,7 @@ export async function submitQuoteLead({
         location: input.location || null,
         message: input.message,
         customerLocale: locale,
+        contact,
       }),
       { name: input.name, source: "quote" },
     ),
@@ -161,6 +166,7 @@ export async function submitQuoteLead({
             name: input.name,
             productLabel: productLbl,
             locale,
+            contact,
           }),
           locale,
         )
@@ -241,7 +247,8 @@ export async function submitContactLead({
     return { ok: false, error: genericError(locale) };
   }
 
-  // 5. Fire-and-forget emails
+  // 5. Fire-and-forget emails — fetch contact info once + thread to all templates
+  const contact = await getContactInfo(locale);
   void Promise.allSettled([
     sendAdminLeadAlert(
       createElement(AdminLeadAlert, {
@@ -253,6 +260,7 @@ export async function submitContactLead({
         subject: input.subject,
         message: input.message,
         customerLocale: locale,
+        contact,
       }),
       { name: input.name, source: "contact" },
     ),
@@ -261,6 +269,7 @@ export async function submitContactLead({
       createElement(CustomerContactConfirmation, {
         name: input.name,
         locale,
+        contact,
       }),
       locale,
     ),

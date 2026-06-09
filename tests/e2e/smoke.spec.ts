@@ -45,30 +45,27 @@ test.describe("Bilingual foundation", () => {
 });
 
 test.describe("Site chrome — Header + Footer + WhatsApp", () => {
-  test("Header renders the co-brand lockup and links to home", async ({ page }) => {
+  test("Header renders the WR Doors logo and links to home", async ({ page }) => {
     await page.goto("/en");
 
     // The header is a banner landmark
     const header = page.getByRole("banner");
     await expect(header).toBeVisible();
 
-    // Co-brand lockup is announced as one img with aria-label "DODA × WR Doors"
-    await expect(header.getByRole("img", { name: /DODA.*WR Doors/i })).toBeVisible();
+    // WR Doors logo is rendered as next/image with alt="WR Doors"
+    await expect(header.getByAltText(/WR Doors/i)).toBeVisible();
   });
 
-  test("Footer surfaces the DODA endorsement, contact info, and legal entity", async ({ page }) => {
+  test("Footer surfaces the AI DODO trademark, contact info, and legal entity", async ({ page }) => {
     await page.goto("/en");
     const footer = page.getByRole("contentinfo");
     await expect(footer).toBeVisible();
 
-    // DODA endorsement copy (use .first() because the inner SVG <title>
-    // also contains "DODA" in some lockup configurations)
-    await expect(footer.getByText(/DODA platform brand/i).first()).toBeVisible();
+    // AI DODO trademark copy
+    await expect(footer.getByText(/Site managed by AI DODO/i)).toBeVisible();
     // Phone number (UAE format)
     await expect(footer.getByText(/\+971/)).toBeVisible();
-    // Legal entity (LLC) — use last() to skip the hidden SVG <title>
-    // (which appears first in DOM order) and target the visible legal strip
-    // paragraph at the bottom of the footer.
+    // Legal entity (LLC)
     await expect(
       footer.getByText(/Wahat Al Ruman Doors Trading LLC/i).last(),
     ).toBeVisible();

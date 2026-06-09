@@ -47,32 +47,35 @@ const SERVICE_META: {
   Icon: React.ElementType;
   popular?: boolean;
   ctaHref: string;
-  ctaVariant: "gold" | "outline";
 }[] = [
+  // All four CTAs share the same outline style for visual consistency.
+  // The "Most popular" badge is what differentiates the Free Consultation
+  // card — no need to also recolor its CTA.
+  //
+  // Each ctaHref also carries `?service=<key>` so the downstream form can
+  // skip its service-selection step (or, on /quote, show a "you came from"
+  // hint). Without this, clicking "Book a Consultation" would force the
+  // user to re-pick "Consultation" on /book — a confusing duplication.
   {
     key: "consultation",
     Icon: Calendar,
     popular: true,
-    ctaHref: "/book",
-    ctaVariant: "gold",
+    ctaHref: "/book?service=consultation",
   },
   {
     key: "installation",
     Icon: Package,
-    ctaHref: "/quote",
-    ctaVariant: "outline",
+    ctaHref: "/quote?service=installation",
   },
   {
     key: "technician",
     Icon: Wrench,
-    ctaHref: "/book",
-    ctaVariant: "outline",
+    ctaHref: "/book?service=technician",
   },
   {
     key: "custom",
     Icon: Palette,
-    ctaHref: "/quote",
-    ctaVariant: "outline",
+    ctaHref: "/quote?service=custom",
   },
 ];
 
@@ -114,7 +117,7 @@ export default async function ServicesPage({
       <section className="py-14 md:py-20">
         <Container>
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            {SERVICE_META.map(({ key, Icon, popular, ctaHref, ctaVariant }) => {
+            {SERVICE_META.map(({ key, Icon, popular, ctaHref }) => {
               const includes = [
                 t(`${key}.include0`),
                 t(`${key}.include1`),
@@ -164,17 +167,13 @@ export default async function ServicesPage({
                     </ul>
                   </div>
 
-                  {/* CTA */}
+                  {/* CTA — gold-filled across all four cards. Matches the
+                      site-wide primary-CTA treatment (hero, final-CTA,
+                      about, projects detail). The "Most popular" badge
+                      still differentiates the consultation card. */}
                   <div className="mt-auto">
                     <Link href={`/${locale}${ctaHref}`}>
-                      <Button
-                        className={
-                          ctaVariant === "gold"
-                            ? "w-full bg-[var(--color-brand-gold)] text-[var(--color-brand-navy)] hover:bg-[var(--color-brand-gold)]/90"
-                            : "w-full"
-                        }
-                        variant={ctaVariant === "gold" ? "default" : "outline"}
-                      >
+                      <Button className="w-full bg-[var(--color-brand-gold)] text-[var(--color-brand-navy)] hover:bg-[var(--color-brand-gold)]/90">
                         {t(`${key}.cta`)}
                       </Button>
                     </Link>
@@ -206,7 +205,10 @@ export default async function ServicesPage({
                 <MessageCircle className="h-4 w-4" />
                 {t("ctaWhatsapp")}
               </a>
-              <Link href={`/${locale}/book`}>
+              {/* Pre-fills `?service=consultation` so this CTA skips the
+                  service-picker step on /book, just like the matching card
+                  above. */}
+              <Link href={`/${locale}/book?service=consultation`}>
                 <Button
                   variant="outline"
                   className="border-white/30 bg-transparent text-white hover:bg-white/10 hover:text-white"

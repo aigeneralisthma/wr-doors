@@ -4,7 +4,7 @@
  */
 import { Link, Section, Text } from "@react-email/components";
 
-import { BRAND, EmailLayout, GoldAccent, Heading } from "./_layout";
+import { BRAND, EmailLayout, GoldAccent, Heading, type EmailContact } from "./_layout";
 
 interface BookingConfirmationProps {
   name: string;
@@ -15,6 +15,8 @@ interface BookingConfirmationProps {
   /** Area / emirate from booking form */
   area: string;
   locale: "en" | "ar";
+  /** Admin-editable contact info — appears in the email footer */
+  contact?: EmailContact;
 }
 
 export default function CustomerBookingConfirmation({
@@ -23,6 +25,7 @@ export default function CustomerBookingConfirmation({
   preferredDate,
   area,
   locale,
+  contact,
 }: BookingConfirmationProps) {
   const dir = locale === "ar" ? "rtl" : "ltr";
 
@@ -64,7 +67,7 @@ export default function CustomerBookingConfirmation({
         };
 
   return (
-    <EmailLayout preview={copy.preview} dir={dir}>
+    <EmailLayout preview={copy.preview} dir={dir} contact={contact}>
       <Heading dir={dir}>{copy.heading}</Heading>
       <GoldAccent />
       <Text
