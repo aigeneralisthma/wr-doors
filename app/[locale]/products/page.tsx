@@ -3,14 +3,14 @@ import type { Metadata } from "next";
 
 import { BRAND } from "@/lib/constants";
 import { PRODUCT_CATEGORY_SLUGS } from "@/lib/products";
-import { getProducts } from "@/lib/supabase/queries";
-import { productImage } from "@/lib/supabase/image-helpers";
+import { getProducts } from "@/lib/db/queries";
+import { productImage } from "@/lib/media/image-helpers";
 import { Container } from "@/components/layout/container";
 import { ProductCard } from "@/components/products/product-card";
 import { CategoryPills } from "@/components/products/category-pills";
 import { GoldAccent } from "@/components/brand/gold-accent";
 
-/* ── ISR: revalidate from Supabase every 60s ──────────────────────────── */
+/* ── ISR: re-read from the database every 60s ──────────────────────────── */
 export const revalidate = 60;
 
 /* ── Static params ─────────────────────────────────────────────────────── */
@@ -52,7 +52,7 @@ export default async function ProductsPage({
   const t = await getTranslations({ locale, namespace: "products" });
   const tCat = await getTranslations({ locale, namespace: "products.categories" });
 
-  // Fetch all active products from Supabase (RLS allows public read)
+  // Fetch all active products from the database
   const products = await getProducts();
 
   const categoryPills = PRODUCT_CATEGORY_SLUGS.map((slug) => {

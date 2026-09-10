@@ -3,9 +3,8 @@
  *
  *   pnpm db:seed
  *
- * Ports the old Supabase seed files:
- *   - supabase/seed/0001_seed.sql          (8 products, 6 projects, 10 settings)
- *   - supabase/seed/0002_seed_technicians.sql (3 technicians)
+ * Baseline content (was the Supabase seed SQL before the Neon migration):
+ *   8 products (with specs), 6 projects, 10 site_settings, 3 technicians
  *
  * Idempotent — every insert uses ON CONFLICT DO NOTHING, so re-running is
  * safe and never clobbers admin edits.
@@ -32,7 +31,7 @@ const db = drizzle(client, { schema });
 
 const IMG = (p: string) => [`/assets/products/${p}`];
 
-/** Product spec rows — ported from supabase/migrations/0002_add_product_specs.sql */
+/** Product spec rows */
 const SPECS: Record<string, schema.ProductSpec[]> = {
   "modern-wpc-interior": [
     { label_en: "Material", label_ar: "المادة", value_en: "WPC Composite", value_ar: "مركب WPC" },

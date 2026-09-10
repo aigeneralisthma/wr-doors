@@ -28,7 +28,7 @@ import {
   type ProductInput,
   type ProjectInput,
   type SiteSettingUpdate,
-} from "@/lib/supabase/admin-mutations";
+} from "@/lib/db/mutations";
 import {
   uploadFile as storageUpload,
   deleteFileByUrl as storageDelete,
@@ -37,7 +37,7 @@ import {
 import type {
   BookingStatus,
   LeadStatus,
-} from "@/lib/supabase/database.types";
+} from "@/lib/db/types";
 
 export interface ActionResult {
   ok: boolean;

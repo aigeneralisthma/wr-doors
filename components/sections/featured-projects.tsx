@@ -11,13 +11,13 @@ import {
   StaggerChildren,
   StaggerItem,
 } from "@/components/animations/stagger-children";
-import { getProjects } from "@/lib/supabase/queries";
-import { localized, projectImage } from "@/lib/supabase/image-helpers";
+import { getProjects } from "@/lib/db/queries";
+import { localized, projectImage } from "@/lib/media/image-helpers";
 
 /**
  * FeaturedProjectsSection — homepage strip showing the top 3 published
- * projects from Supabase, ordered by `display_order`. Falls back gracefully
- * if Supabase is unreachable (renders nothing).
+ * projects, ordered by `display_order`. Falls back gracefully
+ * if the database is unreachable (renders nothing).
  */
 export async function FeaturedProjectsSection({ locale }: { locale: string }) {
   const t = await getTranslations();

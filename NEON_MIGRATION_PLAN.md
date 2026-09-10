@@ -168,4 +168,14 @@ No new paid services.
 - [x] **Phase 1 — Database layer** — ✅ done. `db:migrate` + `db:seed` + `test:db` + `build` all green against Neon. Driver: **Neon HTTP** (`drizzle-orm/neon-http`), not `postgres` — a TCP pool drops connections during `next build` (ECONNRESET) and HTTP is port-443-only (Hostinger-safe).
 - [x] **Phase 2 — Auth** — ✅ done. NextAuth v5 Credentials + JWT sessions, `admin_users` table, `bcryptjs`. Split config (`auth.config.ts` edge-safe / `auth.ts` Node). `scripts/create-admin.ts` (`pnpm admin:create`). Verified in-browser: unauthed gating + `?next=`, login → dashboard, authed→login bounce, sign-out, invalid-creds alert. Supabase Auth + `lib/supabase/client.ts` removed.
 - [x] **Phase 3 — Storage** — ✅ done. `lib/storage/local.ts` writes to `public/uploads/<bucket>/<slug>/<uuid>.webp`, Sharp re-encodes every upload to WebP (≤2000px). Path-traversal guard on delete; non-upload URLs no-op. `next.config.ts` CSP + `remotePatterns` de-Supabased. `sharp` → runtime dep. `.gitignore` `/public/uploads/*`. Verified via temp route: 11.5KB JPEG → 3.5KB WebP on disk, traversal blocked, delete works.
-- [ ] Phase 4 — Data migration + cleanup
+- [x] **Phase 4 — Data migration + cleanup** — ✅ done. **Data migration N/A**: the Supabase project was auto-deleted (free tier, >90 days idle — domain doesn't resolve). Neon runs on the re-seeded baseline. Deleted `lib/supabase/`, `supabase/`, `@supabase/*` deps, `scripts/test-supabase.ts`, `SUPABASE_SETUP.md`; repointed ~33 import sites; `NEON_SETUP.md` written; docs + comments scrubbed. Found the product-page quote modal is still a stub (Prompt 8 miss) → spawned `task_7972d33d`.
+
+---
+
+## ✅ Migration complete
+
+All four phases done. The app runs entirely on Neon + Auth.js + local-FS storage,
+Vercel-compatible, ready for the Hostinger self-host move (separate task).
+
+**Operator TODO**: `pnpm admin:create` with a real password (a temp dev admin
+`aigeneralist.hma@gmail.com` / `ChangeMe-Dev-2026!` currently exists).

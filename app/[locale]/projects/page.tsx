@@ -4,8 +4,8 @@ import Link from "next/link";
 import { MessageCircle } from "lucide-react";
 
 import { BRAND, whatsappUrl } from "@/lib/constants";
-import { getProjects } from "@/lib/supabase/queries";
-import { localized, projectImage } from "@/lib/supabase/image-helpers";
+import { getProjects } from "@/lib/db/queries";
+import { localized, projectImage } from "@/lib/media/image-helpers";
 import { Container } from "@/components/layout/container";
 import { GoldAccent } from "@/components/brand/gold-accent";
 import { Button } from "@/components/ui/button";
@@ -14,7 +14,7 @@ import {
   type EnrichedProject,
 } from "@/components/projects/project-filter";
 
-/* ── ISR: revalidate from Supabase every 60s ──────────────────────────── */
+/* ── ISR: re-read from the database every 60s ──────────────────────────── */
 export const revalidate = 60;
 
 /* ── Static params ─────────────────────────────────────────────────────── */
@@ -52,7 +52,7 @@ export default async function ProjectsPage({
 
   const t = await getTranslations({ locale, namespace: "projects" });
 
-  // Fetch published projects from Supabase, resolve each to the locale-
+  // Fetch published projects, resolve each to the locale-
   // appropriate bilingual fields + an OptimizedImage, then hand the plain
   // serializable shape to the Client filter component.
   const rows = await getProjects();

@@ -6,7 +6,7 @@ import { Link } from "@/i18n/navigation";
 import { ProductImage } from "@/components/ui/product-image";
 import { Badge } from "@/components/ui/badge";
 import type { OptimizedImage } from "@/lib/image-manifest";
-import type { ProductCategory } from "@/lib/supabase/database.types";
+import type { ProductCategory } from "@/lib/db/types";
 
 /** Maps category slug to a display label (used for the badge on the card). */
 const CATEGORY_LABELS: Record<ProductCategory, { en: string; ar: string }> = {
@@ -17,9 +17,8 @@ const CATEGORY_LABELS: Record<ProductCategory, { en: string; ar: string }> = {
 };
 
 /**
- * Subset of fields the card actually renders. Compatible with both the
- * Supabase `ProductRow` and the old `Product` type from `lib/products.ts`
- * (during transition).
+ * Subset of fields the card actually renders. Compatible with the
+ * `ProductRow` DB type and the static `Product` type in `lib/products.ts`.
  */
 export interface ProductCardData {
   slug: string;
@@ -33,7 +32,7 @@ export interface ProductCardData {
 
 export interface ProductCardProps {
   product: ProductCardData;
-  /** Resolved OptimizedImage (caller looks up via `productImage(row)` from lib/supabase/image-helpers) */
+  /** Resolved OptimizedImage (caller looks up via `productImage(row)` from lib/media/image-helpers) */
   image: OptimizedImage;
   locale: string;
   /** Label for the "View Details" link (passed from server translation context). */

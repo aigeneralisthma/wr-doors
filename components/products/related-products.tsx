@@ -3,8 +3,8 @@ import { getTranslations } from "next-intl/server";
 
 import { Container } from "@/components/layout/container";
 import { ProductCard } from "@/components/products/product-card";
-import { productImage } from "@/lib/supabase/image-helpers";
-import type { ProductRow } from "@/lib/supabase/database.types";
+import { productImage } from "@/lib/media/image-helpers";
+import type { ProductRow } from "@/lib/db/types";
 
 interface RelatedProductsProps {
   products: ProductRow[];

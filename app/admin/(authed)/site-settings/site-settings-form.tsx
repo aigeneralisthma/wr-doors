@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { updateSiteSettingsAction } from "@/app/admin/actions";
-import type { SiteSettingRow } from "@/lib/supabase/database.types";
+import type { SiteSettingRow } from "@/lib/db/types";
 
 interface SiteSettingsFormProps {
   settings: SiteSettingRow[];

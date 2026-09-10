@@ -1,5 +1,5 @@
 import { BRAND } from "@/lib/constants";
-import type { ProductRow } from "@/lib/supabase/database.types";
+import type { ProductRow } from "@/lib/db/types";
 
 interface ProductJsonLdProps {
   product: ProductRow;

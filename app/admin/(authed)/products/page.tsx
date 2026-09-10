@@ -2,13 +2,13 @@ import Link from "next/link";
 import { Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { getAllProductsAdmin } from "@/lib/supabase/admin-queries";
+import { getAllProductsAdmin } from "@/lib/db/admin-queries";
 import { ProductsList } from "./products-list";
 
 /**
  * Admin Products list page.
- * Server fetches everything (RLS allows admin to see inactive rows too)
- * and hands it to the client table for filtering/searching.
+ * Server fetches every product (inactive ones included) and hands it to
+ * the client table for filtering/searching.
  */
 export default async function AdminProductsPage() {
   const products = await getAllProductsAdmin();

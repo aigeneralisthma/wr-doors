@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import type {
   BookingRow,
   TechnicianRow,
-} from "@/lib/supabase/database.types";
+} from "@/lib/db/types";
 
 import { BookingsCalendar } from "./bookings-calendar";
 import { BookingsTable } from "./bookings-table";

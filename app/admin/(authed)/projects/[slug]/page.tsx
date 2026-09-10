@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 
 import { ProjectForm } from "@/components/admin/project-form";
-import { getProjectBySlugAdmin } from "@/lib/supabase/admin-queries";
+import { getProjectBySlugAdmin } from "@/lib/db/admin-queries";
 
 export default async function EditProjectPage({
   params,

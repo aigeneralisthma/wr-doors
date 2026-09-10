@@ -14,7 +14,7 @@
  *   1. site_settings row with non-empty `value_<locale>`
  *   2. site_settings row with non-empty `value_en` (defensive fallback)
  *   3. Constant from `lib/constants.ts` (so the site never breaks if a row
- *      is missing, empty, or RLS hides it)
+ *      is missing or empty)
  *
  * Used by:
  *   - components/layout/footer.tsx (server component)
@@ -25,8 +25,8 @@
 import "server-only";
 
 import { CONTACT } from "@/lib/constants";
-import { getAllSiteSettings } from "@/lib/supabase/queries";
-import type { SiteSettingRow } from "@/lib/supabase/database.types";
+import { getAllSiteSettings } from "@/lib/db/queries";
+import type { SiteSettingRow } from "@/lib/db/types";
 
 export interface ContactInfo {
   /** Email address shown to customers + used in mailto: links. */
@@ -62,7 +62,6 @@ function toE164(displayPhone: string): string {
 
 /**
  * Fetches the current ContactInfo for the given locale.
- * Server-only — relies on the static (cookie-free) Supabase client.
  *
  * @example
  *   const contact = await getContactInfo(locale);

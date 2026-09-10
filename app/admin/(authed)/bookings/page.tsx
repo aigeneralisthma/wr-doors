@@ -1,7 +1,7 @@
 import {
   getBookingsAdmin,
   getTechniciansAdmin,
-} from "@/lib/supabase/admin-queries";
+} from "@/lib/db/admin-queries";
 import { BookingsView } from "./bookings-view";
 
 /**

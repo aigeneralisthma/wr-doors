@@ -6,16 +6,16 @@
 
 ## Before you can log in
 
-You need an admin user in Supabase Auth. You should have created one during Prompt 7 — if not:
+The admin account lives in the `admin_users` table. Create it (full setup in `NEON_SETUP.md`):
 
-1. Supabase Dashboard → **Authentication** → **Users** → **Add user → Create new user**
-2. Use your admin email + a strong password
-3. Toggle **Auto Confirm User** ON
-4. Save
+```bash
+# bash
+ADMIN_EMAIL=you@example.com ADMIN_PASSWORD='a-strong-password' pnpm admin:create
+# PowerShell
+$env:ADMIN_EMAIL="you@example.com"; $env:ADMIN_PASSWORD="a-strong-password"; pnpm admin:create
+```
 
-Optional pre-9a step (if you haven't already): seed three sample technicians so the bookings page has someone to assign:
-
-- Supabase SQL Editor → paste `supabase/seed/0002_seed_technicians.sql` → Run
+Sample technicians for the bookings page are loaded by `pnpm db:seed` (along with the rest of the baseline content).
 
 ---
 
@@ -73,146 +73,96 @@ Bottom-left of the sidebar has a **Sign out** button. After clicking, you're ret
 
 ---
 
-## Managing admin users
+## Managing the admin account
 
-> **Where users live**: Supabase Dashboard, NOT inside this admin UI. Any account in **Supabase → Authentication → Users** can sign in here and gets full admin access. There are no role tiers — every admin has the same permissions.
+Auth is **Auth.js (NextAuth) Credentials** against the `admin_users` table.
+There's one account and no role tiers.
 
-### Quick reference
-
-| Need | Where to click |
-|------|----------------|
-| **See who has admin access** | [Supabase Dashboard](https://supabase.com/dashboard) → your project → Authentication → Users |
-| **Add a new admin** | Same page → **Add user → Create new user** → enter email + strong password → tick **Auto Confirm User: ON** → Save |
-| **Reset a forgotten password** | Same page → click the user → **Send password recovery** (or set a new password directly) |
-| **Temporarily disable an admin** | Same page → click user → **Ban user** (preserves credentials, blocks login) |
-| **Remove an admin permanently** | Same page → click user → **Delete user** (kills any active session immediately) |
-| **Enable 2FA for stronger security** | Project Settings → Authentication → **Multi-Factor Authentication** |
-
-### Common workflows
-
-**🆕 Adding a new admin (giving someone access)**
-1. Supabase → Authentication → Users → **Add user → Create new user**
-2. Email + strong password + **Auto Confirm User: ON** → Save
-3. Share credentials through a secure channel (1Password, Signal, in-person — **never** plain email/SMS)
-4. They go to `/admin/login`, sign in → full access immediately
-
-**🔄 Transferring admin to someone else (handover)**
-1. **First**, add the new admin (above) and confirm they can log in
-2. Have them rotate their password to one only they know (use **Send password recovery** or self-reset)
-3. **Then** delete the old admin: click old user → **Delete user**
-4. Old credentials are dead — handover complete
-
-**🔒 Suspending an admin (vacation, leave, etc.)**
-1. Supabase → Authentication → click the user → **Ban user** → pick duration
-2. They can't log in until unbanned — credentials stay intact
-
-**🚪 Removing an admin (fired, role change)**
-1. Click the user → **Delete user**
-2. Any active session is invalidated within seconds
+| Need | How |
+|------|-----|
+| **Create the admin** | `ADMIN_EMAIL=… ADMIN_PASSWORD='…' pnpm admin:create` |
+| **Reset / change the password** | Run `pnpm admin:create` again with the same email and a new password — it updates the row |
+| **Add a second admin** | `pnpm admin:create` with a different email (both get full access) |
+| **Remove an admin** | Delete the row: `pnpm db:studio` → `admin_users` → delete. Their next request fails auth (their JWT stays valid until it expires — up to 30 days — so also rotate `AUTH_SECRET` and redeploy if you need to kill sessions immediately) |
 
 ### Security notes
 
-- The admin login URL (`/admin/login`) is unlinked from the public site + disallowed in `robots.txt` — bots won't find it
-- Supabase Auth has built-in brute-force protection (5 attempts per IP per 5 min)
-- Every admin should use a unique strong password (ideally from a password manager)
-- For production: turn on **MFA** in Supabase Authentication settings — requires every admin to scan a TOTP code on their phone at login
-
-### Why no in-site user-management UI?
-
-Intentional. Supabase's Authentication page is a hardened, audited UI with built-in MFA prompts, password-strength meters, and rate-limit warnings. Duplicating it inside `/admin/users` would mean re-implementing those guardrails and giving the site more code to maintain. Bookmark the Supabase Auth page alongside `/admin/login` and you're set.
+- `/admin/login` is unlinked from the public site and disallowed in `robots.txt`.
+- Passwords are bcrypt-hashed (12 rounds); the plain password is only ever read from the environment by `admin:create`.
+- The session is a JWT in an `httpOnly` cookie signed with `AUTH_SECRET`.
+- Use a strong unique password from a password manager.
+- No MFA in this build — if it's needed later, that's an Auth.js provider add.
 
 ---
 
-## Content management (Prompt 9b)
+## Content management
 
-These pages let you manage everything customers see, without ever opening Supabase:
+These pages manage everything customers see:
 
 ### `/admin/products`
 - Table of all products, filterable by category, with thumbnails
-- **New** button → create a product (slug, name + description in EN/AR, category, price-from, specs JSON, gallery images)
-- Click any row → edit, including upload/replace/reorder gallery images (stored in Supabase Storage under `product-images/`)
+- **New** button → create a product (slug, name + description in EN/AR, category, price-from, specs, gallery images)
+- Click any row → edit, including upload/replace/reorder gallery images
 - Toggle `is_active` to publish/hide
-- Soft-delete supported
+- Delete supported
 
 ### `/admin/projects`
-- Same shape as products: list, create, edit
-- Upload hero + gallery to `project-images/` bucket
+- Same shape as products: list, create, edit, gallery upload
 - Toggle `is_published`
 
 ### `/admin/site-settings`
 - Single-form mini-CMS: hero headline, eyebrow, contact info, business hours, social links
-- All bilingual (EN/AR side-by-side)
-- Saves to `site_settings` table (1 row, `singleton = true` constraint)
+- All bilingual (EN/AR side-by-side), saved to the `site_settings` table
 - Public pages read these via ISR — changes propagate within 60s
 
-> Specs are now stored in `products.specs` JSONB column (migration `0002`), not in code. Storage RLS (migration `0003`) ensures only signed-in admins can upload/replace/delete; public reads are open.
+> Uploaded images are written to `public/uploads/<bucket>/<slug>/` on the server
+> (re-encoded to WebP) and served at `/uploads/...`. On a server, that folder
+> must persist across deploys — see `NEON_SETUP.md`. Specs live in the
+> `products.specs` JSONB column.
 
 ---
 
-## Deploying to production (Prompt 10)
+## Deploying to production
 
-The app is wired for one-click Vercel deployment with full SEO, analytics, and security headers.
+> ⚠️ This section still describes the **old Vercel** setup. The plan is to
+> self-host the whole Next.js app on **Hostinger Node.js hosting** — those
+> steps will be written when that move happens. The environment variables
+> below are current.
 
-### 1. Vercel project setup
-1. Go to **vercel.com → Add New → Project**
-2. Import `aigeneralisthma/wr-doors` from GitHub
-3. Framework Preset: **Next.js** (auto-detected)
-4. Root Directory: `./` (leave default)
-5. Don't deploy yet — click **Environment Variables** first
-
-### 2. Required environment variables
-Paste these into Vercel's env-var UI (apply to Production + Preview + Development):
+### Required environment variables
 
 | Variable | Value | Notes |
 |----------|-------|-------|
-| `NEXT_PUBLIC_SITE_URL` | `https://wrdoors.vercel.app` | Override later if/when you swap to a custom domain |
-| `NEXT_PUBLIC_SUPABASE_URL` | from Supabase dashboard | Project Settings → API |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | from Supabase dashboard | Same page, "anon public" key |
-| `SUPABASE_SERVICE_ROLE_KEY` | from Supabase dashboard | **Server-only**, never expose. Same page, "service_role" key |
-| `RESEND_API_KEY` | from Resend dashboard | re_… token |
-| `RESEND_FROM_EMAIL` | e.g. `WR Doors <noreply@wrdoors.com>` | Must match a verified Resend domain. Use `WR Doors <onboarding@resend.dev>` for Phase-1 test deploys |
-| `ADMIN_NOTIFICATION_EMAIL` | `wahatalruman36@gmail.com` | Where new-lead + new-booking notifications go |
+| `NEXT_PUBLIC_SITE_URL` | your public URL | used in sitemap / robots / JSON-LD / OG tags |
+| `DATABASE_URL` | Neon **pooled** connection string | app runtime |
+| `DATABASE_URL_UNPOOLED` | Neon **direct** connection string | migrations / scripts only |
+| `AUTH_SECRET` | `openssl rand -base64 33` | signs the admin session JWT |
+| `AUTH_URL` | your public URL | Auth.js callback base |
+| `RESEND_API_KEY` | from Resend dashboard | `re_…` token |
+| `RESEND_FROM_EMAIL` | e.g. `WR Doors <noreply@wrdoors.com>` | must match a verified Resend domain |
+| `ADMIN_NOTIFICATION_EMAIL` | where new-lead / new-booking alerts go | |
+| `NEXT_PUBLIC_SPLINE_SCENE_URL` | from Spline (optional) | homepage 3D hero; placeholder if unset |
+| `UPLOADS_DIR` | absolute path (optional) | only if uploads live outside the app dir |
 
-Optional, but recommended for Phase 1:
-| Variable | Value | Notes |
-|----------|-------|-------|
-| `NEXT_PUBLIC_SPLINE_SCENE_URL` | from your Spline account | Homepage 3D hero scene URL. Falls back to a placeholder if unset. |
+`ADMIN_EMAIL` / `ADMIN_PASSWORD` are **not** deployed — they're passed inline
+to `pnpm admin:create` once, on the server, to seed the `admin_users` row.
 
-Optional but recommended:
-| Variable | Value | Notes |
-|----------|-------|-------|
-| `NEXT_PUBLIC_GOOGLE_MAPS_KEY` | from Google Cloud Console | If/when you wire a real map embed on the contact page |
-
-### 3. Deploy
-Click **Deploy**. First build runs `pnpm build` (~2 min). When green, the prod URL appears at the top of the project.
-
-### 4. Verify production
-After deploy:
+### Post-deploy checks
 
 | Check | URL | Expected |
 |-------|-----|----------|
-| Homepage EN | `/en` | Loads, hero animates, no console errors |
-| Homepage AR | `/ar` | Renders RTL, Arabic text correct |
-| Sitemap | `/sitemap.xml` | XML with hreflang en/ar pairs on every URL |
-| Robots | `/robots.txt` | Allow `/`, disallow `/admin/` + `/api/`, sitemap link |
-| OG image | `/en/opengraph-image` | 1200×630 PNG, navy background, gold accent |
-| Admin login | `/admin/login` | Renders; sign in works with your Supabase admin user |
-| CSP header | DevTools → Network → any request → Response Headers | `Content-Security-Policy` present, includes Spline + Supabase + Resend allowlists |
-| Lighthouse | DevTools → Lighthouse → Mobile | Target 90+ Performance, 100 SEO, 100 Best Practices |
+| Homepage EN / AR | `/en`, `/ar` | load; AR renders RTL |
+| Sitemap / robots | `/sitemap.xml`, `/robots.txt` | valid; robots disallows `/admin/` + `/api/` |
+| OG image | `/en/opengraph-image` | 1200×630 PNG |
+| Admin login | `/admin/login` | renders; sign in works |
+| CSP header | DevTools → Network → Response Headers | `Content-Security-Policy` present |
+| Image upload | `/admin/products/<slug>` → gallery | file lands under `/uploads/…`, renders on the public page |
 
-### 5. Analytics
-- **Vercel Analytics** is auto-enabled (free tier: ~2.5k events/mo). View at `https://vercel.com/<your-account>/wr-doors/analytics`. Tracks page views, top routes, locale split, referrers — no cookies, no PII.
-- **Speed Insights** also auto-enabled. View at the Speed Insights tab. Tracks real-user LCP / FID / CLS by route.
+### Analytics
 
-### 6. Custom domain (Phase 2)
-When `wrdoors.com` is ready:
-1. Vercel → Project → **Settings → Domains → Add `wrdoors.com`**
-2. Add the displayed A/CNAME records at your registrar
-3. Once verified, update Vercel env `NEXT_PUBLIC_SITE_URL` to `https://wrdoors.com`
-4. Redeploy
-5. (Optional) Add `doda.com` as a redirect-only domain pointing to `wrdoors.com`
-
-> The base URL is read from `NEXT_PUBLIC_SITE_URL` everywhere (sitemap, robots, JSON-LD, OG tags). Updating that one env var + redeploying is all you need for a domain swap.
+`@vercel/analytics` + `@vercel/speed-insights` are still wired in but only
+report on Vercel. Off Vercel they're inert — swap for Hostinger analytics,
+Plausible, or GA4 as part of the host move.
 
 ---
 
@@ -220,7 +170,7 @@ When `wrdoors.com` is ready:
 
 | Symptom | Cause | Fix |
 |---------|-------|-----|
-| "Invalid email or password" | Wrong credentials | Reset password in Supabase Dashboard → Authentication → Users → pick user → reset |
+| "Invalid email or password" | Wrong credentials | Reset it: `pnpm admin:create` with the same email + a new password |
 | Empty dashboard | No leads/bookings yet | Submit a test form via `/en/contact` etc. |
 | Calendar shows blank month | All events on a different month | Use the Back/Forward buttons in the calendar toolbar |
 | Drawer doesn't save | Session expired (long idle) | Refresh — middleware will bounce you to login and back |
@@ -230,8 +180,9 @@ When `wrdoors.com` is ready:
 
 ## Reference
 
-- Auth + layout: `app/admin/layout.tsx`, `app/admin/(authed)/layout.tsx`, `app/admin/login/`
-- Pages: `app/admin/(authed)/{dashboard,leads,bookings}/page.tsx`
-- Server actions: `app/admin/actions.ts` (updateLeadStatus, updateBooking, signOut)
-- Queries: `lib/supabase/admin-queries.ts`
-- Auth gate: `middleware.ts` (composes locale + admin auth)
+- Auth config: `auth.ts` / `auth.config.ts` · Layouts: `app/admin/layout.tsx`, `app/admin/(authed)/layout.tsx`, `app/admin/login/`
+- Pages: `app/admin/(authed)/{dashboard,leads,bookings,products,projects,site-settings}/page.tsx`
+- Server actions: `app/admin/actions.ts`
+- Queries / mutations: `lib/db/admin-queries.ts`, `lib/db/mutations.ts`
+- Auth gate: `middleware.ts` (composes locale routing + the admin JWT check)
+- Setup: `NEON_SETUP.md`

@@ -23,7 +23,7 @@
    - GitHub login is also fine — but it must use the same `aigeneralist.hma@gmail.com` address.
 3. Verify your email if asked
 
-> 💡 **What about customer emails?** With sandbox, customer confirmation emails will *not* deliver (their addresses aren't verified). The lead is still saved in Supabase and the customer sees the on-screen success state. When the client confirms their `wrdoors.com` domain (Prompt 10 or pre-launch), we add DNS records to deliver customer email globally — no code changes needed.
+> 💡 **What about customer emails?** With sandbox, customer confirmation emails will *not* deliver (their addresses aren't verified). The lead is still saved to the database and the customer sees the on-screen success state. When the client confirms their `wrdoors.com` domain (Prompt 10 or pre-launch), we add DNS records to deliver customer email globally — no code changes needed.
 
 ---
 
@@ -66,7 +66,7 @@ pnpm dev
 Open `http://localhost:3000/en/contact` → fill the form → submit. Expect:
 
 - ✅ On-screen: success state appears ("Message received!")
-- ✅ Supabase Dashboard → Table Editor → `leads` → 1 new row with `source='contact'`, `locale='en'`
+- ✅ `pnpm db:studio` → `leads` → 1 new row with `source='contact'`, `locale='en'`
 - ✅ `aigeneralist.hma@gmail.com` inbox → admin alert email arrived (subject `[Lead] contact from <name>`)
 - ❌ `<the email you typed in the form>` inbox → **nothing** (sandbox limitation — expected)
 
@@ -75,7 +75,7 @@ Open `http://localhost:3000/en/contact` → fill the form → submit. Expect:
 ## What now?
 
 The email infrastructure is wired. The site will:
-- Save every form submission to Supabase ✅
+- Save every form submission to the database ✅
 - Notify the admin in real time ✅
 - Show customers a polished success state with WhatsApp CTA ✅
 - (Once `wrdoors.com` DNS is verified) Send branded confirmation emails to customers in their language
@@ -88,7 +88,7 @@ The email infrastructure is wired. The site will:
 |---------|--------------|-----|
 | `RESEND_API_KEY is not set` thrown in server logs | `.env.local` not updated, or `pnpm dev` was running when you saved | Restart `pnpm dev` after editing `.env.local` |
 | Admin alert not arriving in inbox | Resend account signed up with different email than `ADMIN_NOTIFICATION_EMAIL` | Either change Resend account email, or check the email you actually signed up with |
-| Form submits but no row in Supabase | Browser blocked the server action (rare) or Supabase env vars missing | Check browser console + ensure `NEXT_PUBLIC_SUPABASE_URL` + anon key are set |
+| Form submits but no row in the DB | Server action failed | Check the server logs; ensure `DATABASE_URL` is set and `pnpm test:db` passes |
 | `Validation: 422` from Resend | Sender address malformed | Check `RESEND_FROM_EMAIL` follows `"Name <email@domain>"` format |
 
 ---

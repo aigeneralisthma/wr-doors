@@ -5,6 +5,61 @@
 
 ---
 
+## Neon Migration · Phase 4 — Data migration (n/a) + cleanup ✅
+
+**Date**: 2026-09-10
+**Plan**: `NEON_MIGRATION_PLAN.md`
+
+### Data migration — not possible
+`scripts/migrate-from-supabase.ts` was written and run, but the Supabase
+project **no longer exists** — `jmrmwcspddpbdzbtedcs.supabase.co` does not
+resolve in DNS (general internet fine). Free-tier Supabase projects pause
+after 7 days idle and are auto-deleted after ~90 days; last deploy was
+2026-06-09 (~93 days prior). Any leads/bookings created June–Sept are lost.
+
+Neon runs on the **re-seeded baseline** (`pnpm db:seed`) — the same 8 products
+(with specs), 6 projects, 10 site_settings, 3 technicians that Prompt 7
+originally seeded into Supabase, including the `contact.email →
+aigeneralist.hma@gmail.com` change. The migration script was deleted.
+
+### Cleanup
+- **Deleted**: `lib/supabase/` (whole dir: `server.ts`, `static.ts`,
+  `database.types.ts` + the Phase 1–3 shims), `supabase/` (migrations + seed
+  SQL), `scripts/test-supabase.ts`, `scripts/migrate-from-supabase.ts`,
+  `SUPABASE_SETUP.md`.
+- **Removed deps**: `@supabase/ssr`, `@supabase/supabase-js`.
+- **Repointed ~33 files**: `@/lib/supabase/{queries,admin-queries,admin-mutations,database.types,image-helpers}`
+  → `@/lib/db/{queries,admin-queries,mutations,types}` / `@/lib/media/image-helpers`.
+- **New**: `NEON_SETUP.md` (Neon project + `db:migrate`/`db:seed` + `admin:create`
+  + verify). Rewrote the auth / storage / env-var / user-management sections of
+  `ADMIN_GUIDE.md`; scrubbed `RESEND_SETUP.md`, `.env.local(.example)`,
+  `C:\doda-website\CLAUDE.md`, `RESUME.md`, and stale "Supabase/RLS" comments
+  across `app/` + `components/` + `lib/` + `next.config.ts`.
+- **`.env.local`**: removed `NEXT_PUBLIC_SUPABASE_*` + `SUPABASE_SERVICE_ROLE_KEY`.
+- **`auth.config.ts`**: added a `logger.error` shim so a wrong password logs
+  `[auth] failed login attempt` (one line) instead of a stack trace.
+
+### Found + deferred (not in scope)
+- `components/products/quote-modal.tsx` — the quote dialog on every product
+  detail page is **still a stub** (fakes a delay, `console.log`, never persists).
+  The standalone `/quote` + `/contact` forms work; this one was missed in
+  Prompt 8. Spawned as a separate task (`task_7972d33d`).
+
+### Test Results
+- ✅ `pnpm typecheck` / `pnpm lint` — clean
+- ✅ `pnpm test:run` — 34/34 unit
+- ✅ `pnpm build` — 66 static pages, all routes intact
+- ✅ `pnpm test:db` — connection + seeded counts + `admin_users: 1`
+- ✅ `pnpm exec playwright test admin.spec.ts` — 6/6 (auth gating, login,
+  invalid-creds alert, noindex)
+- ✅ e2e public suite (smoke / products / content / services, mobile) — _see run_
+
+### Commit
+- Branch: `main`
+- Message: `chore(supabase): remove Supabase deps/config/docs after Neon migration`
+
+---
+
 ## Neon Migration · Phase 3 — Storage (Supabase Storage → local filesystem) ✅
 
 **Date**: 2026-09-10

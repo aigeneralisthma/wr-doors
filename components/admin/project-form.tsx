@@ -17,8 +17,8 @@ import {
   uploadImageAction,
   deleteImageAction,
 } from "@/app/admin/actions";
-import type { ProjectCategory } from "@/lib/supabase/database.types";
-import type { ProjectInput } from "@/lib/supabase/admin-mutations";
+import type { ProjectCategory } from "@/lib/db/types";
+import type { ProjectInput } from "@/lib/db/mutations";
 
 interface ProjectFormProps {
   mode: "new" | "edit";

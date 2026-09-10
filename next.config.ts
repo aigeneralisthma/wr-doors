@@ -10,12 +10,12 @@ const withNextIntl = createNextIntlPlugin("./i18n/request.ts");
 const nextConfig: NextConfig = {
   /**
    * Security headers applied to every response.
-   * - CSP: prevents XSS by restricting resource origins (we allow Spline + Supabase + Resend webhooks)
+   * - CSP: prevents XSS by restricting resource origins (Spline, Google Maps, Google Fonts)
    * - X-Frame-Options: prevents clickjacking
    * - X-Content-Type-Options: blocks MIME-sniffing
    * - Referrer-Policy: limits referrer leakage
    * - Permissions-Policy: disables unused powerful APIs
-   * - Strict-Transport-Security: forces HTTPS once seen (Vercel terminates TLS)
+   * - Strict-Transport-Security: forces HTTPS once seen
    */
   async headers() {
     // Content Security Policy — strict allow-list per Prompt 10 plan.

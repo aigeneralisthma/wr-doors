@@ -1,4 +1,4 @@
-import { getAllSiteSettingsAdmin } from "@/lib/supabase/admin-queries";
+import { getAllSiteSettingsAdmin } from "@/lib/db/admin-queries";
 import { SiteSettingsForm } from "./site-settings-form";
 
 export default async function AdminSiteSettingsPage() {

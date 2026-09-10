@@ -10,7 +10,7 @@ import "./calendar.css";
 import type {
   BookingRow,
   BookingStatus,
-} from "@/lib/supabase/database.types";
+} from "@/lib/db/types";
 
 interface BookingsCalendarProps {
   bookings: BookingRow[];

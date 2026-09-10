@@ -4,7 +4,7 @@
  * Server action for /book consultation booking form.
  *
  * Mirrors the lead actions in pattern (Zod → honeypot → rate-limit →
- * Supabase insert → fire-and-forget email), but writes to the `bookings`
+ * DB insert → fire-and-forget email), but writes to the `bookings`
  * table instead of `leads`, and uses the booking-specific email templates.
  */
 

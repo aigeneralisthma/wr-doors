@@ -21,8 +21,8 @@ import {
 import type {
   ProductCategory,
   ProductSpec,
-} from "@/lib/supabase/database.types";
-import type { ProductInput } from "@/lib/supabase/admin-mutations";
+} from "@/lib/db/types";
+import type { ProductInput } from "@/lib/db/mutations";
 
 interface ProductFormProps {
   /** "new" for create; product slug for edit */

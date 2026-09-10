@@ -20,7 +20,7 @@ import type {
   BookingRow,
   BookingStatus,
   TechnicianRow,
-} from "@/lib/supabase/database.types";
+} from "@/lib/db/types";
 import { updateBooking } from "@/app/admin/actions";
 
 interface BookingDetailDrawerProps {

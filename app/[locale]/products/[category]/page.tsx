@@ -8,15 +8,15 @@ import {
   PRODUCT_CATEGORY_SLUGS,
   type ProductCategorySlug,
 } from "@/lib/products";
-import { getProductsByCategory } from "@/lib/supabase/queries";
-import { productImage } from "@/lib/supabase/image-helpers";
+import { getProductsByCategory } from "@/lib/db/queries";
+import { productImage } from "@/lib/media/image-helpers";
 import { Link } from "@/i18n/navigation";
 import { Container } from "@/components/layout/container";
 import { ProductCard } from "@/components/products/product-card";
 import { CategoryPills } from "@/components/products/category-pills";
 import { GoldAccent } from "@/components/brand/gold-accent";
 
-/* ── ISR: revalidate from Supabase every 60s ──────────────────────────── */
+/* ── ISR: re-read from the database every 60s ──────────────────────────── */
 export const revalidate = 60;
 
 /* ── Static params ─────────────────────────────────────────────────────── */

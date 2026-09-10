@@ -11,7 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import type { LeadRow, LeadStatus } from "@/lib/supabase/database.types";
+import type { LeadRow, LeadStatus } from "@/lib/db/types";
 import { updateLeadStatus } from "@/app/admin/actions";
 
 interface LeadDetailDrawerProps {

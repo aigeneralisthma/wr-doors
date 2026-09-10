@@ -7,7 +7,7 @@
  *   1. Honeypot check (silent OK to fool bots)
  *   2. Rate limit by client IP
  *   3. Zod re-validate (defense in depth — client also validated)
- *   4. Insert into Supabase `leads` (RLS allows anon insert)
+ *   4. Insert into the `leads` table
  *   5. Fire-and-forget admin alert email + customer confirmation email
  *   6. Return { ok, error? } — UI handles toast / success state
  *

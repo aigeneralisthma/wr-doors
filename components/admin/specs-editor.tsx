@@ -4,7 +4,7 @@ import { Plus, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import type { ProductSpec } from "@/lib/supabase/database.types";
+import type { ProductSpec } from "@/lib/db/types";
 
 interface SpecsEditorProps {
   value: ProductSpec[];

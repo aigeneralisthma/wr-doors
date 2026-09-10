@@ -8,7 +8,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 
-import { getDashboardStats } from "@/lib/supabase/admin-queries";
+import { getDashboardStats } from "@/lib/db/admin-queries";
 import { StatCard } from "@/components/admin/stat-card";
 
 /**

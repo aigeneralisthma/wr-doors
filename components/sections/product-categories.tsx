@@ -12,9 +12,9 @@ import {
   StaggerItem,
 } from "@/components/animations/stagger-children";
 import { type ProductCategorySlug } from "@/lib/products";
-import { getFeaturedProducts } from "@/lib/supabase/queries";
-import { productImage } from "@/lib/supabase/image-helpers";
-import type { ProductRow } from "@/lib/supabase/database.types";
+import { getFeaturedProducts } from "@/lib/db/queries";
+import { productImage } from "@/lib/media/image-helpers";
+import type { ProductRow } from "@/lib/db/types";
 
 /**
  * ProductCategoriesSection — visual entry point into the four product lines.
@@ -57,7 +57,7 @@ const CATEGORY_ORDER: ReadonlyArray<{
 
 export async function ProductCategoriesSection({ locale }: { locale: string }) {
   const t = await getTranslations();
-  // Fetch featured products from Supabase, build a category → row lookup.
+  // Fetch featured products, build a category → row lookup.
   const featuredRows = await getFeaturedProducts();
   const featured: Partial<Record<ProductCategorySlug, ProductRow>> = {};
   for (const row of featuredRows) {

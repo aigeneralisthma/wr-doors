@@ -17,6 +17,20 @@ export const authConfig = {
   pages: {
     signIn: "/admin/login",
   },
+  // A wrong email/password is an expected outcome, not a server error —
+  // log it terse (no stack trace) and let everything else through.
+  logger: {
+    error(error: Error) {
+      if (error.name === "CredentialsSignin" || error.cause) {
+        const cause = (error.cause as { err?: Error })?.err ?? error;
+        if (cause.name === "CredentialsSignin") {
+          console.warn("[auth] failed login attempt");
+          return;
+        }
+      }
+      console.error("[auth]", error);
+    },
+  },
   providers: [],
   callbacks: {
     jwt({ token, user }) {

@@ -1,4 +1,4 @@
-import { getLeadsAdmin } from "@/lib/supabase/admin-queries";
+import { getLeadsAdmin } from "@/lib/db/admin-queries";
 import { LeadsTable } from "./leads-table";
 
 /**

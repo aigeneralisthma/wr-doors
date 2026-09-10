@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 
 import { ProductForm } from "@/components/admin/product-form";
-import { getProductBySlugAdmin } from "@/lib/supabase/admin-queries";
+import { getProductBySlugAdmin } from "@/lib/db/admin-queries";
 
 export default async function EditProductPage({
   params,

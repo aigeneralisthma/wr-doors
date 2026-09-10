@@ -13,7 +13,7 @@ import {
  *
  * Tone: confident, factual, factory-direct. The numbers are baked in
  * (no animated counters yet — they belong in Prompt 8 once the data is
- * coming from Supabase). Static numerals read fine in both LTR and RTL
+ * coming from the database). Static numerals read fine in both LTR and RTL
  * because Arabic uses the same Hindu-Arabic digits in modern editorial.
  *
  * Layout: 4 stat cards in a row on lg+, 2 columns on tablet, vertical

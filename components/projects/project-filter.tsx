@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 
 import type { OptimizedImage } from "@/lib/image-manifest";
-import type { ProjectCategory } from "@/lib/supabase/database.types";
+import type { ProjectCategory } from "@/lib/db/types";
 import { ProjectCard } from "./project-card";
 
 type FilterValue = "all" | ProjectCategory;

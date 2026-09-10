@@ -12,8 +12,8 @@ import {
   getProductBySlug,
   getProducts,
   getProductSlugsForStaticParams,
-} from "@/lib/supabase/queries";
-import { localized, productImage } from "@/lib/supabase/image-helpers";
+} from "@/lib/db/queries";
+import { localized, productImage } from "@/lib/media/image-helpers";
 import { Link } from "@/i18n/navigation";
 import { Container } from "@/components/layout/container";
 import { ProductImage } from "@/components/ui/product-image";
@@ -24,14 +24,11 @@ import { RelatedProducts } from "@/components/products/related-products";
 import { QuoteModal } from "@/components/products/quote-modal";
 import { ProductJsonLd } from "@/components/seo/product-json-ld";
 
-/* ── ISR: revalidate from Supabase every 60s ──────────────────────────── */
+/* ── ISR: re-read from the database every 60s ─────────────────────────── */
 export const revalidate = 60;
 
 /* ── Static params ─────────────────────────────────────────────────────── */
 export async function generateStaticParams() {
-  // Use the static (no-cookies) client here — `generateStaticParams` runs at
-  // build time without an HTTP request, so the cookie-based server client
-  // throws. See lib/supabase/static.ts.
   return await getProductSlugsForStaticParams();
 }
 

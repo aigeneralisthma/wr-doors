@@ -3,7 +3,7 @@ import { ArrowRight } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { ProductImage } from "@/components/ui/product-image";
 import type { OptimizedImage } from "@/lib/image-manifest";
-import type { ProjectCategory } from "@/lib/supabase/database.types";
+import type { ProjectCategory } from "@/lib/db/types";
 
 interface ProjectCardProps {
   /** Project slug — used to build the detail-page URL */

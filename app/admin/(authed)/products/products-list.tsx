@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 import type {
   ProductCategory,
   ProductRow,
-} from "@/lib/supabase/database.types";
+} from "@/lib/db/types";
 
 interface ProductsListProps {
   products: ProductRow[];

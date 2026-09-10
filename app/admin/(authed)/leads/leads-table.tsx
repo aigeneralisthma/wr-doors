@@ -5,7 +5,7 @@ import { Search } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import type { LeadRow, LeadStatus } from "@/lib/supabase/database.types";
+import type { LeadRow, LeadStatus } from "@/lib/db/types";
 
 import { LeadDetailDrawer } from "./lead-detail-drawer";
 

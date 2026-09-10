@@ -3,7 +3,7 @@ import { Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { ImageThumb } from "@/components/admin/image-thumb";
-import { getAllProjectsAdmin } from "@/lib/supabase/admin-queries";
+import { getAllProjectsAdmin } from "@/lib/db/admin-queries";
 
 export default async function AdminProjectsPage() {
   const projects = await getAllProjectsAdmin();

@@ -34,9 +34,9 @@ interface QuoteModalProps {
 /**
  * QuoteModal — client-side dialog for requesting a quote on a specific product.
  *
- * Phase 1 (Prompt 4): form submission is stubbed — logs to console and shows
- * a success state. Real Supabase insert + Resend email notification comes in
- * Prompts 7 and 8.
+ * NOTE: form submission is still stubbed — it fakes a delay and shows a
+ * success state without persisting anything. Needs a real server action
+ * (insertLead with source: "product-page" + Resend), tracked separately.
  *
  * The trigger button is a gold BrandButton rendered inside a DialogTrigger.
  * Accessible: DialogTitle and DialogDescription are always present.

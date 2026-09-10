@@ -8,8 +8,8 @@ import {
   getProjectBySlug,
   getProjects,
   getProjectSlugsForStaticParams,
-} from "@/lib/supabase/queries";
-import { localized, projectImage } from "@/lib/supabase/image-helpers";
+} from "@/lib/db/queries";
+import { localized, projectImage } from "@/lib/media/image-helpers";
 import { Link } from "@/i18n/navigation";
 import { Container } from "@/components/layout/container";
 import { ProductImage } from "@/components/ui/product-image";
@@ -17,7 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { GoldAccent } from "@/components/brand/gold-accent";
 import { BrandButton } from "@/components/brand/brand-button";
 
-/* ── ISR: revalidate from Supabase every 60s ──────────────────────────── */
+/* ── ISR: re-read from the database every 60s ──────────────────────────── */
 export const revalidate = 60;
 
 /* ── Static params ─────────────────────────────────────────────────────── */
