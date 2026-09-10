@@ -11,8 +11,14 @@ import "server-only";
 import { eq, sql } from "drizzle-orm";
 
 import { db } from "./index";
-import { products, projects, siteSettings } from "./schema";
-import type { ProductCategory, ProjectCategory, ProductSpec } from "./types";
+import { bookings, leads, products, projects, siteSettings } from "./schema";
+import type {
+  BookingStatus,
+  LeadStatus,
+  ProductCategory,
+  ProjectCategory,
+  ProductSpec,
+} from "./types";
 // TODO(phase-3): swap to `@/lib/storage/local`
 import { deleteFilesByUrl } from "@/lib/supabase/storage";
 
@@ -144,6 +150,51 @@ export async function deleteProject(slug: string): Promise<MutationResult> {
     return { ok: true };
   } catch (err) {
     console.error("[deleteProject]", err);
+    return { ok: false, error: (err as Error).message };
+  }
+}
+
+// =============================================================================
+// LEADS + BOOKINGS — admin status updates
+// =============================================================================
+
+export async function updateLeadStatusDb(
+  leadId: string,
+  status: LeadStatus,
+  adminNotes: string | null,
+): Promise<MutationResult> {
+  try {
+    await db
+      .update(leads)
+      .set({ status, admin_notes: adminNotes })
+      .where(eq(leads.id, leadId));
+    return { ok: true };
+  } catch (err) {
+    console.error("[updateLeadStatusDb]", err);
+    return { ok: false, error: (err as Error).message };
+  }
+}
+
+export async function updateBookingDb(
+  bookingId: string,
+  input: {
+    status: BookingStatus;
+    assignedTechnician: string | null;
+    adminNotes: string | null;
+  },
+): Promise<MutationResult> {
+  try {
+    await db
+      .update(bookings)
+      .set({
+        status: input.status,
+        assigned_technician: input.assignedTechnician,
+        admin_notes: input.adminNotes,
+      })
+      .where(eq(bookings.id, bookingId));
+    return { ok: true };
+  } catch (err) {
+    console.error("[updateBookingDb]", err);
     return { ok: false, error: (err as Error).message };
   }
 }

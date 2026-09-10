@@ -4,8 +4,9 @@ import { test, expect } from "@playwright/test";
  * Admin smoke tests — Prompt 9a.
  *
  * These exercise auth gating + login page rendering. The actual logged-in
- * pages (dashboard / leads / bookings) require valid Supabase Auth credentials
- * which we can't bake into tests safely. Manual verification covers those.
+ * pages (dashboard / leads / bookings) require a valid admin account
+ * (`admin_users` row) which we don't bake into CI. Manual verification
+ * covers those.
  *
  * Each test runs only on mobile to save CI time — admin is desktop-first
  * anyway but should not crash on small screens.
@@ -56,7 +57,7 @@ test.describe("/admin — auth gating + login page", () => {
     await page.getByLabel(/Password/i).fill("wrong-password");
     await page.getByRole("button", { name: /Sign in/i }).click();
 
-    // Expect an error alert (Supabase returns "Invalid login credentials")
+    // Expect the "Invalid email or password." alert from the login action
     await expect(page.getByRole("alert")).toBeVisible({ timeout: 10_000 });
   });
 

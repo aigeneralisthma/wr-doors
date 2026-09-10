@@ -4,18 +4,17 @@
  * Admin-only server actions.
  *
  * All actions in this file require an authenticated session — they re-check
- * `supabase.auth.getUser()` at the top as defense in depth (even though the
- * middleware already blocks unauthenticated `/admin/*` requests).
+ * `auth()` at the top as defense in depth (even though the middleware
+ * already blocks unauthenticated `/admin/*` requests).
  *
  * Returns the same `{ ok, error?, ... }` shape as the public actions for
  * UI consistency.
  */
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { z } from "zod";
 
-import { createClient } from "@/lib/supabase/server";
+import { auth, signOut as nextAuthSignOut } from "@/auth";
 import {
   createProduct as dbCreateProduct,
   updateProduct as dbUpdateProduct,
@@ -24,6 +23,8 @@ import {
   updateProject as dbUpdateProject,
   deleteProject as dbDeleteProject,
   updateSiteSettings as dbUpdateSiteSettings,
+  updateLeadStatusDb,
+  updateBookingDb,
   type ProductInput,
   type ProjectInput,
   type SiteSettingUpdate,
@@ -55,9 +56,7 @@ const NOT_AUTHED = "Your session expired. Please sign in again.";
  * Wired to the sidebar sign-out button.
  */
 export async function signOut(): Promise<void> {
-  const supabase = await createClient();
-  await supabase.auth.signOut();
-  redirect("/admin/login");
+  await nextAuthSignOut({ redirectTo: "/admin/login" });
 }
 
 // =============================================================================
@@ -82,20 +81,16 @@ export async function updateLeadStatus(input: {
     return { ok: false, error: GENERIC_ERROR };
   }
 
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { ok: false, error: NOT_AUTHED };
+  const session = await auth();
+  if (!session?.user) return { ok: false, error: NOT_AUTHED };
 
-  const { error } = await supabase
-    .from("leads")
-    .update({
-      status: parsed.data.status,
-      admin_notes: parsed.data.adminNotes ?? null,
-    })
-    .eq("id", parsed.data.leadId);
-
-  if (error) {
-    console.error("[updateLeadStatus] failed:", error.message);
+  const result = await updateLeadStatusDb(
+    parsed.data.leadId,
+    parsed.data.status,
+    parsed.data.adminNotes ?? null,
+  );
+  if (!result.ok) {
+    console.error("[updateLeadStatus] failed:", result.error);
     return { ok: false, error: GENERIC_ERROR };
   }
 
@@ -134,21 +129,16 @@ export async function updateBooking(input: {
     return { ok: false, error: GENERIC_ERROR };
   }
 
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { ok: false, error: NOT_AUTHED };
+  const session = await auth();
+  if (!session?.user) return { ok: false, error: NOT_AUTHED };
 
-  const { error } = await supabase
-    .from("bookings")
-    .update({
-      status: parsed.data.status,
-      assigned_technician: parsed.data.assignedTechnician,
-      admin_notes: parsed.data.adminNotes ?? null,
-    })
-    .eq("id", parsed.data.bookingId);
-
-  if (error) {
-    console.error("[updateBooking] failed:", error.message);
+  const result = await updateBookingDb(parsed.data.bookingId, {
+    status: parsed.data.status,
+    assignedTechnician: parsed.data.assignedTechnician,
+    adminNotes: parsed.data.adminNotes ?? null,
+  });
+  if (!result.ok) {
+    console.error("[updateBooking] failed:", result.error);
     return { ok: false, error: GENERIC_ERROR };
   }
 
@@ -162,9 +152,8 @@ export async function updateBooking(input: {
 // =============================================================================
 
 async function requireAuth(): Promise<ActionResult | null> {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { ok: false, error: NOT_AUTHED };
+  const session = await auth();
+  if (!session?.user) return { ok: false, error: NOT_AUTHED };
   return null;
 }
 

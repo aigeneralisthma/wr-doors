@@ -27,7 +27,7 @@ export default function AdminLoginPage() {
             Admin Sign In
           </h1>
           <p className="mt-2 text-xs text-muted-foreground">
-            Use the email + password you created in Supabase Dashboard.
+            Enter your admin email and password.
           </p>
         </div>
 

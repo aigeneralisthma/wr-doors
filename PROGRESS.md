@@ -5,6 +5,92 @@
 
 ---
 
+## Neon Migration · Phase 2 — Auth (Supabase Auth → Auth.js) ✅
+
+**Date**: 2026-09-10
+**Plan**: `NEON_MIGRATION_PLAN.md`
+
+### Goal
+Replace Supabase Auth (admin email/password login) with **Auth.js (NextAuth v5)**
+Credentials + JWT sessions, backed by the `admin_users` table created in Phase 1.
+
+### Deliverables
+- **`auth.config.ts`** — edge-safe base config (imported by `middleware.ts`).
+  No DB / bcrypt / `server-only`. `session.strategy: "jwt"`, `trustHost: true`,
+  `pages.signIn`, `jwt`/`session` callbacks carrying `id` + `role`.
+- **`auth.ts`** — full config: adds the Credentials provider. `authorize()`
+  looks up `admin_users` by lowercased email + `bcrypt.compare`. Exports
+  `{ handlers, auth, signIn, signOut }`.
+- **`app/api/auth/[...nextauth]/route.ts`** — `export { GET, POST } = handlers`.
+- **`lib/auth/password.ts`** — `hashPassword` / `verifyPassword` (`bcryptjs`,
+  12 rounds; pure JS so no native build on Hostinger).
+- **`types/next-auth.d.ts`** — `Session.user.{id,role}` + `JWT.{id,role}`.
+- **`scripts/create-admin.ts`** (`pnpm admin:create`) — upserts one `admin_users`
+  row from `ADMIN_EMAIL` + `ADMIN_PASSWORD` (env or `--flags`). This is the
+  password-reset flow now. Plain password never persisted, only the hash.
+- **`lib/db/mutations.ts`** — added `updateLeadStatusDb` + `updateBookingDb`
+  (the two admin writes that were still inline `supabase.from(...).update()`
+  in `app/admin/actions.ts`).
+
+### Rewired
+- **`middleware.ts`** — `NextAuth(authConfig).auth((req) => …)` wrapper; JWT
+  cookie check (no DB). Same dispatch-by-pathname: `/admin/*` gate + `?next=`,
+  authed→`/admin/dashboard` bounce off `/admin/login`, else next-intl.
+- **`app/admin/login/login-form.tsx`** — client `useActionState` → new
+  **`app/admin/login/actions.ts`** `loginAction` server action calling
+  `signIn("credentials", { redirectTo })`. `AuthError` → "Invalid email or
+  password."; the `?next=` redirect is sanitized (must be `/admin/*`).
+- **`app/admin/(authed)/layout.tsx`** — `await auth()` for the session +
+  sidebar email.
+- **`app/admin/actions.ts`** — `signOut()` → `nextAuthSignOut({ redirectTo })`;
+  `requireAuth()` + the two inline checks → `await auth()`; lead/booking
+  writes → the new Drizzle mutations.
+- **`app/admin/login/page.tsx`** — copy: "Enter your admin email and password."
+- **`.env.local.example`** — `AUTH_SECRET`, `AUTH_URL`, `ADMIN_EMAIL`,
+  `ADMIN_PASSWORD` (script-only). `package.json`: `admin:create` script.
+
+### Removed
+- `lib/supabase/client.ts` (the only browser Supabase client — login form).
+
+### Deferred to Phase 4
+- `lib/supabase/{server,static,database.types}.ts` now dead; deleted with the
+  rest of the cleanup. `@supabase/*` deps stay until Storage (Phase 3) is off.
+
+### Test Results
+- ✅ `pnpm typecheck` / `pnpm lint` — clean
+- ✅ `pnpm test:run` — 34/34
+- ✅ `pnpm build` — 54 pages + `/api/auth/[...nextauth]`, middleware intact
+- ✅ **In-browser (dev server + real Neon)**:
+  - unauthed `/admin/dashboard` → `/admin/login?next=%2Fadmin%2Fdashboard`
+  - login (`admin:create` account) → redirect to `?next` target, dashboard
+    renders with Neon stats, sidebar shows the email
+  - authed visit to `/admin/login` → bounced to `/admin/dashboard`
+  - "Sign out" → `/admin/login`; subsequent `/admin/leads` → login w/ `?next`
+  - wrong password → stays on login, shows "Invalid email or password."
+  - `pnpm test:db` → `admin_users: 1 row`
+
+### Security review
+- Session is a JWT in an `httpOnly` cookie (not readable by `document.cookie`).
+- Middleware verifies the JWT only — no DB in the edge runtime; bcrypt + DB
+  stay in the Node-only `auth.ts` via the split config.
+- `authorize()` runs Zod on credentials, lowercases email, constant-ish
+  `bcrypt.compare` (returns null on both "no user" and "bad password").
+- `loginAction` sanitizes `?next` (must start `/admin/`, no `//` or `:`).
+- `bcryptjs` 12 rounds. Admin password only ever in env → hash in DB.
+- `AUTH_SECRET` required; added to `.env.local` (gitignored). Prod sets its own.
+
+### Notes
+- Next 16 prints a `middleware → proxy` rename deprecation warning — not
+  blocking, swept in a later Next-16 cleanup pass.
+- A temp dev admin (`aigeneralist.hma@gmail.com`) was created for verification.
+  **Operator must run `pnpm admin:create` with a real password before launch.**
+
+### Commit
+- Branch: `main`
+- Message: `feat(auth): replace Supabase Auth with Auth.js (NextAuth v5) credentials`
+
+---
+
 ## Neon Migration · Phase 1 — Database layer (Supabase → Neon + Drizzle) ✅
 
 **Date**: 2026-09-10

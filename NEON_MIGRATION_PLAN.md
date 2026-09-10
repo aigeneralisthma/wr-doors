@@ -166,6 +166,6 @@ No new paid services.
 ## Status
 
 - [x] **Phase 1 — Database layer** — ✅ done. `db:migrate` + `db:seed` + `test:db` + `build` all green against Neon. Driver: **Neon HTTP** (`drizzle-orm/neon-http`), not `postgres` — a TCP pool drops connections during `next build` (ECONNRESET) and HTTP is port-443-only (Hostinger-safe).
-- [ ] Phase 2 — Auth
+- [x] **Phase 2 — Auth** — ✅ done. NextAuth v5 Credentials + JWT sessions, `admin_users` table, `bcryptjs`. Split config (`auth.config.ts` edge-safe / `auth.ts` Node). `scripts/create-admin.ts` (`pnpm admin:create`). Verified in-browser: unauthed gating + `?next=`, login → dashboard, authed→login bounce, sign-out, invalid-creds alert. Supabase Auth + `lib/supabase/client.ts` removed.
 - [ ] Phase 3 — Storage
 - [ ] Phase 4 — Data migration + cleanup
