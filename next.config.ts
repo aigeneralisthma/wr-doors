@@ -32,18 +32,18 @@ const nextConfig: NextConfig = {
     // Each external host below is whitelisted intentionally:
     //   - prod.spline.design / my.spline.design — homepage 3D hero
     //   - va.vercel-scripts.com — Vercel Analytics
-    //   - *.supabase.co — auth, queries, Storage CDN
     //   - api.resend.com — server-side email send (from server actions)
     //   - www.google.com / maps.gstatic.com / maps.googleapis.com — contact page map
     //   - fonts.googleapis.com / fonts.gstatic.com — next/font Google Fonts loader
+    // Uploaded images are served from same-origin /uploads/ — covered by 'self'.
     const csp = [
       "default-src 'self'",
       "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://prod.spline.design https://va.vercel-scripts.com",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com",
-      "img-src 'self' data: blob: https://*.supabase.co https://maps.gstatic.com https://maps.googleapis.com https://prod.spline.design",
+      "img-src 'self' data: blob: https://maps.gstatic.com https://maps.googleapis.com https://prod.spline.design",
       "frame-src https://www.google.com https://my.spline.design",
-      "connect-src 'self' https://*.supabase.co https://api.resend.com https://prod.spline.design https://vitals.vercel-insights.com",
+      "connect-src 'self' https://api.resend.com https://prod.spline.design https://vitals.vercel-insights.com",
       "worker-src 'self' blob:",
       "base-uri 'self'",
       "form-action 'self'",
@@ -92,12 +92,8 @@ const nextConfig: NextConfig = {
     formats: ["image/avif", "image/webp"],
     deviceSizes: [640, 768, 1024, 1280, 1920],
     imageSizes: [16, 32, 48, 64, 96, 128, 256],
-    remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "*.supabase.co",
-      },
-    ],
+    // All images are same-origin: the Sharp-built manifest under /assets and
+    // admin uploads under /uploads. No remote patterns needed.
   },
 
   /**

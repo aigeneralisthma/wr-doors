@@ -14,9 +14,9 @@ interface ImageThumbProps {
  * ImageThumb — small image tile used in admin list pages and as the
  * gallery thumbnail in the gallery editor.
  *
- * Works with both local manifest paths (`/assets/...`) and Supabase
- * Storage URLs (`https://*.supabase.co/storage/...`). The Storage host
- * is whitelisted in next.config.ts so `next/image` can optimize it.
+ * Works with both local manifest paths (`/assets/...`) and admin-uploaded
+ * files (`/uploads/...`) — both are local, so `next/image` handles them
+ * with no extra config.
  *
  * If the URL is missing or empty, renders a muted placeholder so the
  * tile keeps its shape (no layout shift).

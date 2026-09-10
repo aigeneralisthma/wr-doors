@@ -5,6 +5,89 @@
 
 ---
 
+## Neon Migration · Phase 3 — Storage (Supabase Storage → local filesystem) ✅
+
+**Date**: 2026-09-10
+**Plan**: `NEON_MIGRATION_PLAN.md`
+
+### Goal
+Replace Supabase Storage (5 buckets) with local-filesystem uploads served
+by Next as static files — host-agnostic, works on Hostinger's persistent disk.
+
+### Deliverables
+- **`lib/storage/local.ts`** (`server-only`) — replaces `lib/supabase/storage.ts`,
+  same public API (`uploadFile` / `deleteFileByUrl` / `deleteFilesByUrl` /
+  `STORAGE_BUCKETS` / `MAX_FILE_SIZE_BYTES` / `ALLOWED_MIME_TYPES`), plus
+  `isUploadUrl` (was `isStorageUrl`).
+  - Writes `public/uploads/<bucket>/<slug>/<uuid>.webp`. `bucket` must be in
+    `STORAGE_BUCKETS`, `slug` must match `/^[a-z0-9-]+$/`, filename is a UUID.
+  - **Sharp** re-encodes every upload → WebP, `fit: inside` ≤ 2000px,
+    EXIF-rotate. Falls back to raw bytes if Sharp throws.
+  - `deleteFileByUrl`: `path.resolve` + confinement check to `UPLOADS_DIR`
+    (traversal guard); `ENOENT` and non-upload URLs both return `{ ok: true }`.
+  - `UPLOADS_DIR` / `NEXT_PUBLIC_UPLOADS_BASE_URL` env overrides (defaults
+    `public/uploads` and `/uploads`).
+
+### Rewired
+- `app/admin/actions.ts` — storage import → `@/lib/storage/local` (upload/delete
+  actions unchanged otherwise).
+- `lib/db/mutations.ts` — `deleteFilesByUrl` import → `@/lib/storage/local`
+  (dropped the Phase-1 TODO).
+- `components/ui/smart-image.tsx` — `RenderableImage` import → `@/lib/media/image-helpers`;
+  "Storage URL" → "uploaded file" comments.
+- `components/admin/image-thumb.tsx` — comment only.
+- `next.config.ts` — removed `*.supabase.co` from `images.remotePatterns`
+  (now none — everything is same-origin) and from CSP `img-src` / `connect-src`.
+- `package.json` — `sharp` moved devDependencies → dependencies (runtime import
+  + self-hosted `next/image` needs it).
+- `.gitignore` — `/public/uploads/*` (keep `.gitkeep`).
+- `.env.local.example` — uploads env docs.
+
+### Removed
+- `lib/supabase/storage.ts` (nothing imports it now).
+
+### Deferred to Phase 4
+- 7 remaining `@/lib/supabase/image-helpers` importers → `@/lib/media/image-helpers`.
+- `lib/supabase/{server,static,image-helpers,database.types}.ts`, `supabase/` dir,
+  `@supabase/*` deps, `scripts/test-supabase.ts`, `SUPABASE_SETUP.md`.
+- `scripts/pull-supabase-storage.ts` for any admin-uploaded Storage objects.
+
+### Test Results
+- ✅ `pnpm typecheck` / `pnpm lint` — clean (fs calls have scoped
+  `eslint-disable security/detect-non-literal-fs-filename` with justification)
+- ✅ `pnpm test:run` — 34/34
+- ✅ `pnpm build` — 66 static pages, all routes intact
+- ✅ **Storage layer, real run** (temp `app/api/tmptest` route, since
+  `server-only` blocks plain-node testing — route removed after):
+  - upload: 11 520-byte JPEG → `products/modern-wpc-interior/<uuid>.webp`,
+    **3 496 bytes on disk** (Sharp WebP)
+  - `isUploadUrl`: true for `/uploads/…`, false for `/assets/…`
+  - traversal: `/uploads/../../../etc/passwd` → "Refusing to delete outside
+    the uploads root."
+  - delete → `{ ok: true }`, file gone; manifest URL delete → `{ ok: true }` no-op
+- ✅ **Admin UI** (dev server + Neon): `/admin/products/modern-wpc-interior`
+  renders the full edit form + gallery editor, data from Neon.
+
+### Security review
+- `server-only` on the storage module.
+- Upload path fully synthesized from a bucket allow-list + slug regex + UUID —
+  no caller-controlled segment reaches the filesystem unchecked.
+- Delete path `path.resolve`d and confined to `UPLOADS_DIR`.
+- Size (5 MB) + MIME allow-list enforced server-side (client also checks).
+- Uploaded files served same-origin under `/uploads/` — covered by CSP `'self'`.
+
+### Notes
+- Hostinger: the `public/uploads/` folder must persist across deploys (it's on
+  the persistent disk; just don't let the deploy step wipe it). Or point
+  `UPLOADS_DIR` at a volume outside the app dir.
+- `next/image` still optimizes `/uploads/*.webp` at request time (AVIF/resizes).
+
+### Commit
+- Branch: `main`
+- Message: `feat(storage): replace Supabase Storage with local filesystem uploads`
+
+---
+
 ## Neon Migration · Phase 2 — Auth (Supabase Auth → Auth.js) ✅
 
 **Date**: 2026-09-10

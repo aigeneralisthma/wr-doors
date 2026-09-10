@@ -19,8 +19,7 @@ import type {
   ProjectCategory,
   ProductSpec,
 } from "./types";
-// TODO(phase-3): swap to `@/lib/storage/local`
-import { deleteFilesByUrl } from "@/lib/supabase/storage";
+import { deleteFilesByUrl } from "@/lib/storage/local";
 
 export interface MutationResult {
   ok: boolean;

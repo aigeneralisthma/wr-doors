@@ -33,7 +33,7 @@ import {
   uploadFile as storageUpload,
   deleteFileByUrl as storageDelete,
   type StorageBucket,
-} from "@/lib/supabase/storage";
+} from "@/lib/storage/local";
 import type {
   BookingStatus,
   LeadStatus,

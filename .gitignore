@@ -56,3 +56,7 @@ next-env.d.ts
 # OS
 Thumbs.db
 desktop.ini
+
+# uploaded images (persistent on the server, gitignored)
+/public/uploads/*
+!/public/uploads/.gitkeep

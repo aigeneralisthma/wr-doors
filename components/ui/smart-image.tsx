@@ -3,19 +3,18 @@ import Image from "next/image";
 
 import { cn } from "@/lib/utils";
 import { ProductImage } from "./product-image";
-import type { RenderableImage } from "@/lib/supabase/image-helpers";
+import type { RenderableImage } from "@/lib/media/image-helpers";
 
 /**
  * SmartImage — renders either the full `<picture>` with responsive variants
  * (manifest-backed seeded images) OR a plain `<Image>` from next/image
- * (Supabase Storage-backed admin uploads).
+ * (admin-uploaded files under `/uploads/...`).
  *
  * Callers don't need to know which kind they have — just pass the
  * `RenderableImage` from `productImageSmart()` / `projectImageSmart()`.
  *
- * For Storage URLs we use `next/image`. Vercel will re-optimize at request
- * time (counts against the per-month optimization quota — fine for low
- * traffic). To skip that, set `unoptimized` on the props passed through.
+ * Uploaded files are local paths, so `next/image` optimizes them at
+ * request time with no `remotePatterns` entry needed.
  */
 export interface SmartImageProps {
   image: RenderableImage;
@@ -47,7 +46,7 @@ export function SmartImage({
     );
   }
 
-  // Storage URL — plain next/image
+  // Uploaded file — plain next/image (local path, optimized at request time)
   return (
     <div className={cn("relative overflow-hidden bg-muted", className)}>
       <Image
@@ -60,7 +59,6 @@ export function SmartImage({
           "h-full w-full",
           fit === "cover" ? "object-cover" : "object-contain",
         )}
-        // Storage hosts are added to next.config.ts to allow optimization
       />
     </div>
   );
