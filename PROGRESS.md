@@ -5,6 +5,71 @@
 
 ---
 
+## Neon Migration · Phase 1 — Database layer (Supabase → Neon + Drizzle) ✅
+
+**Date**: 2026-09-10
+**Plan**: `NEON_MIGRATION_PLAN.md`
+
+### Goal
+Replace Supabase Postgres (accessed via the `@supabase/supabase-js` PostgREST
+client) with Neon, accessed through Drizzle ORM. First of 4 phases; Auth and
+Storage still on Supabase until Phases 2–3.
+
+### Deliverables
+- **`lib/db/schema.ts`** — Drizzle schema, source of truth. 7 tables (the 6
+  Supabase tables + new `admin_users` for Phase 2). CHECK constraints, partial
+  indexes, JSONB `specs`, `text[]` image arrays — ported 1:1 from
+  `supabase/migrations/0001`+`0002`+`0003`. String unions pinned with `.$type<>()`.
+- **`lib/db/index.ts`** — Drizzle over the **Neon HTTP driver**
+  (`@neondatabase/serverless` + `drizzle-orm/neon-http`). Chosen over a TCP
+  pool because `next build` fires hundreds of parallel queries and a
+  PgBouncer pool drops them (ECONNRESET); HTTP is also port-443-only, so it
+  works on Hostinger even if outbound 5432 is blocked.
+- **`lib/db/types.ts`** — Row/Insert types inferred from the schema, re-exported
+  under the exact old names (`ProductRow`, `LeadRow`, …) so consumers didn't change.
+- **`lib/db/queries.ts`** (public reads), **`admin-queries.ts`** + **`mutations.ts`**
+  (`server-only`), **`public-mutations.ts`** (`insertLead`/`insertBooking`).
+- **`lib/media/image-helpers.ts`** — moved from `lib/supabase/`; detects
+  `/uploads/` paths for Phase 3.
+- **`drizzle.config.ts`** + **`drizzle/0000_milky_mongu.sql`** (+ `updated_at`
+  triggers appended). **`scripts/seed.ts`** (8 products w/ specs, 6 projects,
+  10 settings, 3 technicians), **`scripts/test-db.ts`**.
+- **Rewired**: `app/actions/leads.ts`, `app/actions/bookings.ts`, `app/sitemap.ts`.
+- **Shims**: `lib/supabase/{queries,admin-queries,admin-mutations,image-helpers}.ts`
+  now re-export from `lib/db/*` so the ~25 importing files were untouched.
+  Deleted in Phase 4.
+- **`package.json`**: `db:generate` / `db:migrate` / `db:push` / `db:studio` /
+  `db:seed` / `test:db`; removed `supabase:check`.
+- **`.env.local.example`**: `DATABASE_URL` (+ `_UNPOOLED`); Phase 2/3 vars stubbed.
+
+### Not touched (later phases)
+- Supabase Auth — middleware, login form, admin session checks (Phase 2)
+- Supabase Storage — `lib/supabase/storage.ts`, uploads (Phase 3)
+- `lib/supabase/{client,server,static,database.types}.ts` — deleted in Phase 4
+- `scripts/test-supabase.ts`, `supabase/` dir, `@supabase/*` deps — Phase 4
+
+### Test Results
+- ✅ `pnpm typecheck` — clean
+- ✅ `pnpm lint` — clean
+- ✅ `pnpm test:run` — 34/34 unit tests (baseline; the "40" in older entries predates a test consolidation in `3dfcc4a`)
+- ✅ `pnpm db:migrate` — schema + triggers applied to Neon
+- ✅ `pnpm db:seed` — 8 / 6 / 10 / 3 rows
+- ✅ `pnpm test:db` — connection, seeded counts, lead insert+delete round-trip (only `admin_users` empty — created in Phase 2)
+- ✅ `pnpm build` — 54 pages, all SSG product/category/detail + project routes prerendered, `/sitemap.xml` static, admin routes dynamic
+
+### Notes / decisions
+- **Neon HTTP driver, not `postgres`/`pg`** — see `lib/db/index.ts`. `postgres` stays
+  as a dependency only for the one-off CLI scripts (TCP via the unpooled URL).
+- **No RLS** — replaced by: public pages import only `lib/db/queries.ts`;
+  `server-only` on admin modules; CHECK constraints on `leads`/`bookings`.
+- `updated_at` kept as a Postgres trigger (`refresh_updated_at`) for parity.
+
+### Commit
+- Branch: `main`
+- Message: `feat(db): migrate from Supabase Postgres to Neon + Drizzle ORM`
+
+---
+
 ## Prompt 10 — SEO + Performance + Vercel Deployment Prep ✅
 
 **Date**: 2026-06-08

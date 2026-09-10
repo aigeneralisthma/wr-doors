@@ -12,7 +12,7 @@ import { headers } from "next/headers";
 import { createElement } from "react";
 import { z } from "zod";
 
-import { createStaticClient } from "@/lib/supabase/static";
+import { insertBooking } from "@/lib/db/public-mutations";
 import {
   SERVICE_TYPES,
   bookingContactSchema,
@@ -99,27 +99,24 @@ export async function submitBooking({
     return { ok: true };
   }
 
-  // 4. Insert into Supabase — generate UUID server-side (anon has no SELECT
-  // policy on bookings, so .select() RETURNING would fail RLS).
-  const supabase = createStaticClient();
+  // 4. Insert into the DB — generate UUID server-side so the id is known
+  // for the confirmation email without a RETURNING round-trip.
   const bookingId = crypto.randomUUID();
-  const { error: dbError } = await supabase.from("bookings").insert({
-    id: bookingId,
-    customer_name: input.name,
-    phone: input.phone,
-    email: input.email || null,
-    service: input.service,
-    area: input.area,
-    preferred_date: input.date,
-    notes: input.notes || null,
-    locale,
-    status: "new",
-  });
-
-  if (dbError) {
-    console.error(
-      `[submitBooking] insert failed code=${dbError.code} message="${dbError.message}" details="${dbError.details}" hint="${dbError.hint}"`,
-    );
+  try {
+    await insertBooking({
+      id: bookingId,
+      customer_name: input.name,
+      phone: input.phone,
+      email: input.email || null,
+      service: input.service,
+      area: input.area,
+      preferred_date: input.date,
+      notes: input.notes || null,
+      locale,
+      status: "new",
+    });
+  } catch (err) {
+    console.error("[submitBooking] insert failed", err);
     return { ok: false, error: genericError(locale) };
   }
 

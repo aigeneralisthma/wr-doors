@@ -18,7 +18,7 @@
 import { headers } from "next/headers";
 import { createElement } from "react";
 
-import { createStaticClient } from "@/lib/supabase/static";
+import { insertLead } from "@/lib/db/public-mutations";
 import { contactSchema } from "@/lib/schemas/contact";
 import { quoteSchema } from "@/lib/schemas/quote";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
@@ -108,31 +108,26 @@ export async function submitQuoteLead({
     return { ok: true }; // Don't reveal the rejection to bots
   }
 
-  // 4. Insert into Supabase. We generate the UUID server-side because anon
-  // has no SELECT policy on `leads` — chaining `.select("id").single()`
-  // would fail RLS even though the INSERT succeeds (the RETURNING clause
-  // needs SELECT permission too).
-  const supabase = createStaticClient();
+  // 4. Insert into the DB. We generate the UUID server-side so the id is
+  // known for the confirmation email without a RETURNING round-trip.
   const leadId = crypto.randomUUID();
-  const { error: dbError } = await supabase.from("leads").insert({
-    id: leadId,
-    name: input.name,
-    phone: input.phone,
-    email: input.email || null,
-    product: input.product || null,
-    quantity: input.quantity || null,
-    location: input.location || null,
-    budget: input.budget || null,
-    message: input.message,
-    locale,
-    source: "quote",
-    status: "new",
-  });
-
-  if (dbError) {
-    console.error(
-      `[submitQuoteLead] insert failed code=${dbError.code} message="${dbError.message}" details="${dbError.details}" hint="${dbError.hint}"`,
-    );
+  try {
+    await insertLead({
+      id: leadId,
+      name: input.name,
+      phone: input.phone,
+      email: input.email || null,
+      product: input.product || null,
+      quantity: input.quantity || null,
+      location: input.location || null,
+      budget: input.budget || null,
+      message: input.message,
+      locale,
+      source: "quote",
+      status: "new",
+    });
+  } catch (err) {
+    console.error("[submitQuoteLead] insert failed", err);
     return { ok: false, error: genericError(locale) };
   }
 
@@ -225,25 +220,22 @@ export async function submitContactLead({
     return { ok: true };
   }
 
-  // 4. Insert into Supabase — generate UUID server-side, see submitQuoteLead.
-  const supabase = createStaticClient();
+  // 4. Insert into the DB — generate UUID server-side, see submitQuoteLead.
   const leadId = crypto.randomUUID();
-  const { error: dbError } = await supabase.from("leads").insert({
-    id: leadId,
-    name: input.name,
-    phone: input.phone,
-    email: input.email,
-    subject: input.subject,
-    message: input.message,
-    locale,
-    source: "contact",
-    status: "new",
-  });
-
-  if (dbError) {
-    console.error(
-      `[submitContactLead] insert failed code=${dbError.code} message="${dbError.message}" details="${dbError.details}" hint="${dbError.hint}"`,
-    );
+  try {
+    await insertLead({
+      id: leadId,
+      name: input.name,
+      phone: input.phone,
+      email: input.email,
+      subject: input.subject,
+      message: input.message,
+      locale,
+      source: "contact",
+      status: "new",
+    });
+  } catch (err) {
+    console.error("[submitContactLead] insert failed", err);
     return { ok: false, error: genericError(locale) };
   }
 

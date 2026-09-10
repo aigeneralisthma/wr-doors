@@ -1,7 +1,10 @@
 import type { MetadataRoute } from "next";
 
 import { BRAND, PRODUCT_CATEGORIES } from "@/lib/constants";
-import { createStaticClient } from "@/lib/supabase/static";
+import {
+  getProductsForSitemap,
+  getProjectsForSitemap,
+} from "@/lib/db/queries";
 
 /**
  * Dynamic sitemap — generates one entry per public URL across both
@@ -10,9 +13,8 @@ import { createStaticClient } from "@/lib/supabase/static";
  * Per Google's bilingual SEO guidance, each URL also declares its
  * `alternates.languages` so the crawler knows en ⇄ ar pairs.
  *
- * Dynamic slugs (products + projects) are fetched at build time via
- * the static (no-cookies) Supabase client. The sitemap re-generates
- * on each deploy + ISR revalidation.
+ * Dynamic slugs (products + projects) are fetched at build time from the
+ * database. The sitemap re-generates on each deploy + ISR revalidation.
  */
 
 const LOCALES = ["en", "ar"] as const;
@@ -38,18 +40,10 @@ const STATIC_ROUTES: StaticRoute[] = [
 ];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const supabase = createStaticClient();
-
   // Fetch dynamic slugs in parallel
-  const [{ data: products }, { data: projects }] = await Promise.all([
-    supabase
-      .from("products")
-      .select("slug, category, updated_at")
-      .eq("is_active", true),
-    supabase
-      .from("projects")
-      .select("slug, updated_at")
-      .eq("is_published", true),
+  const [products, projects] = await Promise.all([
+    getProductsForSitemap(),
+    getProjectsForSitemap(),
   ]);
 
   const entries: MetadataRoute.Sitemap = [];
