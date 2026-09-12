@@ -80,15 +80,26 @@ There's one account and no role tiers.
 
 | Need | How |
 |------|-----|
-| **Create the admin** | `ADMIN_EMAIL=… ADMIN_PASSWORD='…' pnpm admin:create` |
-| **Reset / change the password** | Run `pnpm admin:create` again with the same email and a new password — it updates the row |
+| **Change/forgot your own password (self-service)** | On `/admin/login`, click **"Forgot password?"** → enter your email → click the link mailed to you (valid 1 hour, single use) → set a new password. No dev/terminal access needed — this is what the client uses. |
+| **Create the admin (first time), or reset without email working** | `ADMIN_EMAIL=… ADMIN_PASSWORD='…' pnpm admin:create` — break-glass fallback if Resend is down |
 | **Add a second admin** | `pnpm admin:create` with a different email (both get full access) |
 | **Remove an admin** | Delete the row: `pnpm db:studio` → `admin_users` → delete. Their next request fails auth (their JWT stays valid until it expires — up to 30 days — so also rotate `AUTH_SECRET` and redeploy if you need to kill sessions immediately) |
 
+### How the self-service reset works
+
+`/admin/forgot-password` → `requestPasswordResetAction` looks up the email;
+if it matches an account, mints a random 256-bit token, stores only its
+SHA-256 hash in `password_reset_tokens` (1 hour expiry), and emails a link
+containing the plain token via Resend. The response is identical whether or
+not the email matched — it never reveals which admin emails exist.
+`/admin/reset-password?token=…` → `resetPasswordAction` looks the token up
+by hash, checks it's unexpired and unused, marks it used, and updates
+`admin_users.password_hash`. Rate-limited like the public forms.
+
 ### Security notes
 
-- `/admin/login` is unlinked from the public site and disallowed in `robots.txt`.
-- Passwords are bcrypt-hashed (12 rounds); the plain password is only ever read from the environment by `admin:create`.
+- `/admin/login`, `/admin/forgot-password`, `/admin/reset-password` are all unlinked from the public site and disallowed in `robots.txt`.
+- Passwords are bcrypt-hashed (12 rounds); the plain password is only ever read from the environment by `admin:create`, or typed into the reset form.
 - The session is a JWT in an `httpOnly` cookie signed with `AUTH_SECRET`.
 - Use a strong unique password from a password manager.
 - No MFA in this build — if it's needed later, that's an Auth.js provider add.

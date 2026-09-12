@@ -11,8 +11,17 @@ import "server-only";
 import { and, asc, desc, eq, ilike, or, type SQL } from "drizzle-orm";
 
 import { db } from "./index";
-import { bookings, leads, products, projects, siteSettings, technicians } from "./schema";
+import {
+  adminUsers,
+  bookings,
+  leads,
+  products,
+  projects,
+  siteSettings,
+  technicians,
+} from "./schema";
 import type {
+  AdminUserRow,
   BookingRow,
   BookingStatus,
   LeadRow,
@@ -273,4 +282,29 @@ export async function getDashboardStats(): Promise<DashboardStats> {
       bookings: recentBookings,
     },
   };
+}
+
+// =============================================================================
+// ADMIN USERS (used by the forgot-password flow — see app/actions/auth-reset.ts)
+// =============================================================================
+
+export async function getAdminUserByEmail(
+  email: string,
+): Promise<AdminUserRow | null> {
+  const rows = await db
+    .select()
+    .from(adminUsers)
+    .where(eq(adminUsers.email, email.trim().toLowerCase()))
+    .limit(1);
+  return rows[0] ?? null;
+}
+
+export async function updateAdminPasswordHash(
+  adminUserId: string,
+  passwordHash: string,
+): Promise<void> {
+  await db
+    .update(adminUsers)
+    .set({ password_hash: passwordHash })
+    .where(eq(adminUsers.id, adminUserId));
 }

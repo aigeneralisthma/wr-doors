@@ -14,13 +14,22 @@ import { routing } from "./i18n/routing";
  * The auth check uses `NextAuth(authConfig)` built from the EDGE-SAFE
  * config only (no DB, no bcrypt) — it just verifies the JWT session
  * cookie. Flow:
- *   - /admin/login       → if already authed, bounce to /admin/dashboard
- *   - /admin/*           → if NOT authed, redirect to /admin/login?next=<path>
- *   - everything else    → next-intl
+ *   - /admin/login, /admin/forgot-password, /admin/reset-password
+ *                         → reachable while signed out (that's the point)
+ *   - /admin/login        → if already authed, bounce to /admin/dashboard
+ *   - /admin/*            → if NOT authed, redirect to /admin/login?next=<path>
+ *   - everything else     → next-intl
  */
 
 const { auth } = NextAuth(authConfig);
 const intlMiddleware = createMiddleware(routing);
+
+/** Admin routes reachable without a session — the whole point of each. */
+const PUBLIC_ADMIN_ROUTES = new Set([
+  "/admin/login",
+  "/admin/forgot-password",
+  "/admin/reset-password",
+]);
 
 export default auth((request) => {
   const { pathname } = request.nextUrl;
@@ -28,8 +37,9 @@ export default auth((request) => {
   if (pathname.startsWith("/admin")) {
     const isLoggedIn = Boolean(request.auth?.user);
     const isLoginRoute = pathname === "/admin/login";
+    const isPublicAdminRoute = PUBLIC_ADMIN_ROUTES.has(pathname);
 
-    if (!isLoggedIn && !isLoginRoute) {
+    if (!isLoggedIn && !isPublicAdminRoute) {
       const loginUrl = new URL("/admin/login", request.url);
       loginUrl.searchParams.set("next", pathname);
       return NextResponse.redirect(loginUrl);

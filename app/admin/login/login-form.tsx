@@ -4,6 +4,8 @@ import { useActionState } from "react";
 import { useSearchParams } from "next/navigation";
 import { AlertCircle, Loader2 } from "lucide-react";
 
+import Link from "next/link";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -39,7 +41,15 @@ export function LoginForm() {
         />
       </div>
       <div className="space-y-1.5">
-        <Label htmlFor="admin-password">Password</Label>
+        <div className="flex items-center justify-between">
+          <Label htmlFor="admin-password">Password</Label>
+          <Link
+            href="/admin/forgot-password"
+            className="text-xs text-muted-foreground underline hover:text-foreground"
+          >
+            Forgot password?
+          </Link>
+        </div>
         <Input
           id="admin-password"
           name="password"

@@ -182,7 +182,7 @@ export default function AdminLeadAlert({
           fontStyle: "italic",
         }}
       >
-        Lead saved to Supabase. View in dashboard once /admin is live (Prompt 9).
+        View and manage this lead in the admin dashboard → /admin/leads
       </Text>
     </EmailLayout>
   );

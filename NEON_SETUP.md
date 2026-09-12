@@ -75,6 +75,11 @@ $env:ADMIN_EMAIL="you@example.com"; $env:ADMIN_PASSWORD="a-strong-password"; pnp
 Minimum password length is 10. The plain password is only read from the
 environment — only the bcrypt hash is stored.
 
+After the first account exists, the admin can reset their own password from
+`/admin/login` → **Forgot password?** (mails a 1-hour single-use link via
+Resend) — no terminal access needed. `admin:create` is the break-glass
+fallback if that account is locked out or email delivery is down.
+
 ---
 
 ## 5 — Verify (~30 sec)
@@ -136,5 +141,6 @@ Then `pnpm dev`, open `http://localhost:3000/admin/login`, and sign in.
 - Schema: `lib/db/schema.ts` · Migrations: `drizzle/`
 - DB client: `lib/db/index.ts` · Queries: `lib/db/{queries,admin-queries}.ts` · Mutations: `lib/db/{mutations,public-mutations}.ts`
 - Auth: `auth.ts` / `auth.config.ts` / `middleware.ts` · Password: `lib/auth/password.ts`
+- Password reset: `lib/auth/reset-token.ts` · `app/actions/auth-reset.ts` · `app/admin/{forgot-password,reset-password}/`
 - Storage: `lib/storage/local.ts`
 - Scripts: `scripts/{seed,test-db,create-admin}.ts`

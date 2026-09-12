@@ -303,3 +303,21 @@ export const adminUsers = pgTable(
   },
   (t) => [check("admin_users_role_check", sql`${t.role} IN ('admin')`)],
 );
+
+// ── password_reset_tokens (self-service "forgot password") ──────────────────
+//
+// The token itself is a high-entropy random string mailed to the admin —
+// only its SHA-256 hash is stored, so a DB read alone can't be used to log
+// in. Single use (`used_at`) + short expiry (1h, enforced in application
+// code). Deleting an admin cascades away their outstanding tokens.
+
+export const passwordResetTokens = pgTable("password_reset_tokens", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  admin_user_id: uuid("admin_user_id")
+    .notNull()
+    .references(() => adminUsers.id, { onDelete: "cascade" }),
+  token_hash: text("token_hash").notNull().unique(),
+  expires_at: timestamp("expires_at", { withTimezone: true, mode: "string" }).notNull(),
+  used_at: timestamp("used_at", { withTimezone: true, mode: "string" }),
+  created_at: createdAt,
+});

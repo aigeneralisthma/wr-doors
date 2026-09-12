@@ -8,6 +8,13 @@
       "when": 1788713582834,
       "tag": "0000_milky_mongu",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1789232515078,
+      "tag": "0001_slow_red_wolf",
+      "breakpoints": true
     }
   ]
 }

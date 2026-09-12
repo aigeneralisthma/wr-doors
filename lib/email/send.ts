@@ -150,3 +150,15 @@ export async function sendAdminBookingAlert(
     template,
   });
 }
+
+/**
+ * Password reset link — sent to the admin's own email (not the business
+ * inbox), since that's the account being reset.
+ */
+export async function sendAdminPasswordReset(to: string, template: ReactElement) {
+  return send({
+    to,
+    subject: "Reset your WR Doors admin password",
+    template,
+  });
+}
