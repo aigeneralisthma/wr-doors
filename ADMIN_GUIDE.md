@@ -129,6 +129,19 @@ These pages manage everything customers see:
 > steps will be written when that move happens. The environment variables
 > below are current.
 
+### Package manager on Hostinger: use npm, not pnpm
+
+Local dev uses **pnpm** (`pnpm-lock.yaml`) — keep using it day to day. But
+Hostinger's Node.js app builder fetches its package manager via corepack, and
+that has been unreliable there (a corrupted corepack cache threw
+`MODULE_NOT_FOUND` fetching pnpm, and pinning `packageManager` in
+`package.json` didn't change which version it fetched). npm ships with Node
+directly, so it sidesteps corepack entirely. A `package-lock.json` is
+committed alongside `pnpm-lock.yaml` for exactly this: on Hostinger, set
+**Build command**: `npm ci && npm run build`, **Start command**: `npm start`.
+Regenerate `package-lock.json` (`npm install --package-lock-only`) whenever
+dependencies change — it can drift from `pnpm-lock.yaml` if you forget.
+
 ### Required environment variables
 
 | Variable | Value | Notes |
